@@ -3,7 +3,7 @@ function loadStyle(e, t) {
         if (document.styleSheets[o].href == e) return;
     var a = document.getElementsByTagName("head")[0],
         r = document.createElement("link");
-    r.rel = "stylesheet", r.type = "text/css", r.href = e, t && (r.onload = function () {
+    r.rel = "stylesheet", r.type = "text/css", r.href = ASSET_PATH + e, t && (r.onload = function () {
         t()
     });
     var l = $(a).find('[href$="main.css"]');

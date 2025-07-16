@@ -1,3 +1,4 @@
+<!-- https://dore-jquery.coloredstrategies.com/Dashboard.Analytics.html -->
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -109,7 +110,11 @@
         <div class="main-menu">
             <div class="scroll">
                 <ul class="list-unstyled">
-                    <li class="active"><a href="#dashboard"><i class="iconsminds-shop-4"></i> <span>Dashboards</span></a></li>
+                    <li class="{{ request()->routeIs('home') ? 'active' : '' }}">
+                        <a href="{{ route('home') }}">
+                            <i class="iconsminds-shop-4"></i> <span>Dashboards</span>
+                        </a>
+                    </li>
                     <li><a href="#layouts"><i class="iconsminds-digital-drawing"></i> Pages</a></li>
                     <li><a href="#applications"><i class="iconsminds-air-balloon-1"></i> Applications</a></li>
                     <li><a href="#ui"><i class="iconsminds-pantone"></i> UI</a></li>
@@ -148,6 +153,9 @@
             </div>
         </div>
     </footer>
+    <script>
+        const ASSET_PATH = "{{ asset('') }}";
+    </script>
     <script src="{{ asset('js/jquery-3.3.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('js/datatables.min.js') }}"></script>
