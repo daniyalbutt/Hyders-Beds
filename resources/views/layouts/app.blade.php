@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{{ asset('css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/datatables.responsive.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/perfect-scrollbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/select2-bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/main.css') }}">
 </head>
 <body id="app-container" class="menu-default show-spinner">
@@ -41,7 +43,7 @@
         <a class="navbar-logo" href="Dashboard.Default.html"><span class="logo d-none d-xs-block"></span> <span class="logo-mobile d-block d-xs-none"></span></a>
         <div class="navbar-right">
             <div class="header-icons d-inline-block align-middle">
-                <div class="d-none d-md-inline-block align-text-bottom mr-3">
+                <div class="d-none align-text-bottom mr-3">
                     <div class="custom-switch custom-switch-primary-inverse custom-switch-small pl-1" data-toggle="tooltip" data-placement="left" title="Dark Mode"><input class="custom-switch-input" id="switchDark" type="checkbox" checked="checked"> <label class="custom-switch-btn" for="switchDark"></label></div>
                 </div>
                 <div class="position-relative d-none d-sm-inline-block">
@@ -115,7 +117,13 @@
                             <i class="iconsminds-shop-4"></i> <span>Dashboards</span>
                         </a>
                     </li>
-                    <li><a href="#layouts"><i class="iconsminds-digital-drawing"></i> Pages</a></li>
+                    @can('customer')
+                    <li class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                        <a href="{{ route('customers.index') }}">
+                            <i class="iconsminds-add-user"></i> Customers
+                        </a>
+                    </li>
+                    @endcan
                     <li><a href="#applications"><i class="iconsminds-air-balloon-1"></i> Applications</a></li>
                     <li><a href="#ui"><i class="iconsminds-pantone"></i> UI</a></li>
                     <li><a href="#menu"><i class="iconsminds-three-arrow-fork"></i> Menu</a></li>
@@ -153,6 +161,23 @@
             </div>
         </div>
     </footer>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this item?<br>This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
         const ASSET_PATH = "{{ asset('') }}";
     </script>
@@ -161,7 +186,185 @@
     <script src="{{ asset('js/datatables.min.js') }}"></script>
     <script src="{{ asset('js/perfect-scrollbar.min.js') }}"></script>
     <script src="{{ asset('js/progressbar.min.js') }}"></script>
+    <script src="{{ asset('js/select2.full.js') }}"></script>
     <script src="{{ asset('js/dore.script.js') }}"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
+    @stack('scripts')
+    <script>
+        $(document).ready(function () {
+            $('.ajax-form').on('submit', function (e) {
+                e.preventDefault(); // Prevent normal form submission
+
+                // Clear previous messages
+                $('.alert-danger, .alert-success').remove();
+
+                let form = $(this);
+                let formData = new FormData(this);
+                let actionUrl = form.attr('action');
+                let submitButton = form.find('button[type="submit"]');
+                let stepInput = form.find('input[name="step"]');
+                submitButton.prop('disabled', true);
+
+                $.ajax({
+                    url: actionUrl,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('input[name="_token"]').val()
+                    },
+                    success: function (response) {
+                        if($(stepInput).length != 0){
+                            var previous_step = $(stepInput).data('form');
+                            var box_body = $('input[name="step"][value="'+previous_step+'"]').parent().find('.box-body');
+                            if($(stepInput).val() == 'new_trade'){
+                                let newTrade = response.data;
+                                let html = `
+                                    <div class="row">
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Company Name</label>
+                                                <input type="text" class="form-control" name="company_name[${newTrade.id}]" value="${newTrade.company_name}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Address</label>
+                                                <input type="text" class="form-control" name="address[${newTrade.id}]" value="${newTrade.address}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Telephone</label>
+                                                <input type="text" class="form-control" name="telephone[${newTrade.id}]" value="${newTrade.telephone}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Fax / Email</label>
+                                                <input type="text" class="form-control" name="email[${newTrade.id}]" value="${newTrade.email}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Contact No</label>
+                                                <input type="text" class="form-control" name="contact_no[${newTrade.id}]" value="${newTrade.contact_no}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 mt-1">
+                                            <button class="btn btn-danger btn-sm delete-data mt-4" data-url="/customers/${newTrade.id}" data-table="customer_trades">DELETE</button>
+                                        </div>
+                                    </div>
+                                    `;
+                                $(box_body).append(html);
+                                $('#tradeReferenceModal').modal('hide');
+                                $('#tradeReferenceModal').find('form')[0].reset();
+                            }
+                            if($(stepInput).val() == 'new_customer_sale'){
+                                let newCustomerSale = response.data;
+                                let html = `
+                                    <div class="row">
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Name</label>
+                                                <input type="text" class="form-control" name="name[${newCustomerSale.id}]" value="${newCustomerSale.name}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Address</label>
+                                                <input type="text" class="form-control" name="address[${newCustomerSale.id}]" value="${newCustomerSale.address}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md">
+                                            <div class="form-group">
+                                                <label class="form-label">Telephone</label>
+                                                <input type="text" class="form-control" name="telephone[${newCustomerSale.id}]" value="${newCustomerSale.telephone}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1 mt-1">
+                                            <button class="btn btn-danger btn-sm delete-data mt-4" data-url="/customers/${newCustomerSale.id}" data-table="customer_partnerships">DELETE</button>
+                                        </div>
+                                    </div>
+                                    `;
+                                $(box_body).append(html);
+                                $('#customerSaleModal').modal('hide');
+                                $('#customerSaleModal').find('form')[0].reset();
+                            }
+                            console.log(stepInput);
+                            console.log(previous_step);
+                        }
+                        console.log(response);
+                        if(response.success){
+                            form.prepend('<div class="alert alert-success">' + response.message + '</div>');
+                        }
+                        
+                        submitButton.prop('disabled', false);
+                    },
+                    error: function (xhr) {
+                        // Validation errors
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            $.each(errors, function (key, messages) {
+                                $.each(messages, function (index, message) {
+                                    console.log(message);
+                                    form.prepend('<div class="alert alert-danger">' + message + '</div>');
+                                });
+                            });
+                        } else {
+                            // General error
+                            form.prepend('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                        }
+                        submitButton.prop('disabled', false);
+                    }
+                });
+            });
+        });
+
+        // Delete URL
+        $(document).ready(function () {
+            let deleteUrl = '';
+            let deleteButton = null;
+            let deleteTable = null;
+
+            // Open modal on delete button click
+            $(document).on('click', '.delete-data', function (e) {
+                e.preventDefault();
+                deleteUrl = $(this).data('url'); // store URL
+                deleteTable = $(this).data('table'); // store URL
+                deleteButton = $(this); // store the button (to remove row later)
+                $('#deleteConfirmModal').modal('show');
+            });
+
+            // Confirm delete
+            $('#confirmDeleteBtn').on('click', function () {
+                if (!deleteUrl) return;
+
+                $.ajax({
+                    url: deleteUrl,
+                    method: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        _method: 'DELETE',
+                        table_name: deleteTable
+                    },
+                    success: function (response) {
+                        if(response.success){
+                            $('#deleteConfirmModal').modal('hide');
+                            deleteButton.closest('.row').slideUp();
+                            deleteUrl = '';
+                            deleteButton = null;
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#deleteConfirmModal').modal('hide');
+                        alert('An error occurred while deleting.');
+                        console.error(xhr);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

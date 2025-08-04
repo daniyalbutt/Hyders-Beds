@@ -13,3 +13,44 @@ ul.role-wrapper {
 ul.role-wrapper li {
     flex: 0 0 23%;
 }
+
+.custom-nav-tabs.nav-tabs .nav-link.active {
+    background-color: #00365a;
+    color: white;
+}
+
+.custom-nav-tabs {
+    gap: 20px;
+}
+
+.custom-nav-tabs.nav-tabs .nav-link {
+    padding: 10px 23px 9px;
+}
+
+h5#deleteModalLabel {
+    font-weight: bold;
+    font-size: 25px;
+    text-align: center;
+    display: block;
+}
+
+#deleteConfirmModal .modal-header {
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 0;
+    border: 0;
+}
+
+#deleteConfirmModal .modal-body {
+    border: 0 !important;
+    padding-top: 10px;
+    font-size: 15px;
+    text-align: center;
+}
+
+div#deleteConfirmModal .modal-footer {
+    border: 0;
+    padding-top: 0;
+    align-items: center;
+    justify-content: center;
+}
