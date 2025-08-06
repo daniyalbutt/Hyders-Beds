@@ -54,51 +54,70 @@
 						<div class="col-md-3">
 							<div class="form-group mb-3">
 								<label class="form-label">Sale Price <strong>*</strong></label>
-								<input type="text" class="form-control" name="price" required>
+								<input type="text" class="form-control" name="sale_price" required>
 							</div>
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-4">
 							<div class="form-group mb-3">
-								<label class="form-label">Product Range <strong>*</strong></label>
-								<select name="product_range" id="product_range" class="form-control" required>
-
+								<label class="form-label">Product Range</label>
+								<select name="product_range" id="product_range" class="form-control select2-single">
+									<option value="0">Select Product Range</option>
+									@foreach(config('product.ranges') as $key => $value)
+									<option value="{{ $value }}">{{ $value }}</option>
+									@endforeach
+								</select>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group mb-3">
+								<label class="form-label">Product Section <strong>*</strong></label>
+								<select name="product_section" id="product_section" class="form-control select2-single" required>
+									<option value="0">Select Product Section</option>
+									@foreach(config('product.section') as $key => $value)
+									<option value="{{ $value }}">{{ $value }}</option>
+									@endforeach
+								</select>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="form-group mb-3">
+								<label class="form-label">Production Type <strong>*</strong></label>
+								<select name="production_type" id="production_type" class="form-control select2-single" required>
+									<option value="0">Select Product Type</option>
+									@foreach(config('product.type') as $key => $value)
+									<option value="{{ $value }}">{{ $value }}</option>
+									@endforeach
 								</select>
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group mb-3">
 								<label class="form-label">Volume <strong>*</strong></label>
-								<input type="text" class="form-control" name="volume" required>
+								<input type="number" step="0.01" class="form-control" name="volume" required>
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group mb-3">
-								<label class="form-label">Weight <strong>*</strong></label>
-								<input type="text" class="form-control" name="weight" required>
+								<label class="form-label">Weight</label>
+								<input type="number" step="0.01" class="form-control" name="weight">
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group mb-3">
-								<label class="form-label">Width <strong>*</strong></label>
-								<input type="text" class="form-control" name="width" required>
+								<label class="form-label">Width</label>
+								<input type="number" step="0.01" class="form-control" name="width">
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group mb-3">
-								<label class="form-label">Length <strong>*</strong></label>
-								<input type="text" class="form-control" name="length" required>
+								<label class="form-label">Length</label>
+								<input type="number" step="0.01" class="form-control" name="length">
 							</div>
 						</div>
 						<div class="col-md-2">
 							<div class="form-group mb-3">
-								<label class="form-label">Height <strong>*</strong></label>
-								<input type="text" class="form-control" name="height" required>
-							</div>
-						</div>
-						<div class="col-md-12">
-							<div class="form-group mb-3">
-								<label class="form-label">Description</label>
-								<textarea name="description" id="description" class="form-control"></textarea>
+								<label class="form-label">Height</label>
+								<input type="number" step="0.01" class="form-control" name="height">
 							</div>
 						</div>
 					</div>

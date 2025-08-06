@@ -39,7 +39,26 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'product_code' => 'required|unique:products,product_code',
+            'description' => 'required',
+            'product_section' => 'required',
+            'production_type' => 'required'
+        ]);
+        $data = new Product();
+        $data->product_code = $request->product_code;
+        $data->description = $request->description;
+        $data->sale_price = $request->sale_price;
+        $data->product_range = $request->product_range;
+        $data->product_section = $request->product_section;
+        $data->production_type = $request->production_type;
+        $data->volume = $request->volume;
+        $data->weight = $request->weight;
+        $data->width = $request->width;
+        $data->length = $request->length;
+        $data->height = $request->height;
+        $data->save();
+        return redirect()->back()->with('success', 'Product Added Successfully');
     }
 
     /**
@@ -93,6 +112,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
         Product::find($id)->delete();
+        return redirect()->back()->with('success', 'Product Deleted Successfully');
     }
 
     public function import(){
