@@ -124,8 +124,14 @@
                         </a>
                     </li>
                     @endcan
+                    @can('product')
+                    <li class="{{ request()->routeIs('products.*') ? 'active' : '' }}">
+                        <a href="{{ route('products.index') }}">
+                            <i class="iconsminds-pantone"></i> Products
+                        </a>
+                    </li>
+                    @endcan
                     <li><a href="#applications"><i class="iconsminds-air-balloon-1"></i> Applications</a></li>
-                    <li><a href="#ui"><i class="iconsminds-pantone"></i> UI</a></li>
                     <li><a href="#menu"><i class="iconsminds-three-arrow-fork"></i> Menu</a></li>
                     <li><a href="Blank.Page.html"><i class="iconsminds-bucket"></i> Blank Page</a></li>
                     <li><a href="https://dore-jquery-docs.coloredstrategies.com" target="_blank"><i class="iconsminds-library"></i> Docs</a></li>
