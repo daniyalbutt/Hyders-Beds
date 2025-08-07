@@ -27,7 +27,7 @@
     <div class="card-body p-3">
         <form class="form-inline justify-content-end" method="get" action="{{ route('products.index') }}">
             <label class="sr-only" for="inlineFormInputName2">Name</label>
-			<input type="text" name="name" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Name" value="{{ Request::get('name') }}">
+			<input type="text" name="product_code" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Product Code" value="{{ Request::get('product_code') }}">
             <button type="submit" class="btn btn-sm btn-outline-primary mb-0">Search</button>
         </form>
     </div>

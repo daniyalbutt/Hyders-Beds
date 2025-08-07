@@ -20,9 +20,13 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Product::where('status', 0)->orderBy('id', 'desc')->paginate(20);
+        $data = Product::where('status', 0)->orderBy('id', 'desc');
+        if($request->product_code != null){
+            $data = $data->where('product_code', 'LIKE', "%{$request->product_code}%");
+        }
+        $data = $data->paginate(20);
         return view('product.index', compact('data'));
     }
 
