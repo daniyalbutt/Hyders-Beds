@@ -54,3 +54,15 @@ div#deleteConfirmModal .modal-footer {
     align-items: center;
     justify-content: center;
 }
+
+#pasteArea {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    min-height: 100px;
+    margin-bottom: 20px;
+}
+
+#pasteArea:focus-visible {
+    outline: 0;
+    border-color: black;
+}

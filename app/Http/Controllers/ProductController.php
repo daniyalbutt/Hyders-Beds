@@ -120,11 +120,81 @@ class ProductController extends Controller
     }
 
     public function importProduct(Request $request){
-        try{
-            Excel::import(new ProductsImport, $request->file('file'));
-            return redirect()->back()->with('success', 'Product Import Successfully');
-        }catch(\Exception $ex){
-            return redirect()->back()->with('success', 'Some error has occu ' . $ex->getMessage());
+        if($request->has_file == 1){
+            try{
+                Excel::import(new ProductsImport, $request->file('file'));
+                return redirect()->back()->with('success', 'Product Import Successfully');
+            }catch(\Exception $ex){
+                return redirect()->back()->with('success', 'Some error has occu ' . $ex->getMessage());
+            }
+        }else{
+            $headers = $request->input('headers');
+            $rows = $request->input('data');
+            $hasFile = $request->input('has_file');
+
+            if (!$headers || !$rows) {
+                return response()->json(['message' => 'Missing headers or data'], 400);
+            }
+
+            foreach ($rows as $row) {
+                $data = [];
+
+                foreach ($headers as $index => $fieldName) {
+                    $value = $row[$index] ?? null;
+
+                    switch ($fieldName) {
+                        case 'Product Code':
+                            $data['product_code'] = $value;
+                            break;
+                        case 'Product Description':
+                            $data['description'] = $value;
+                            break;
+                        case 'Sale Price':
+                            $data['sale_price'] = $value;
+                            break;
+                        case 'Volume':
+                            $data['volume'] = $value;
+                            break;
+                        case 'Weight':
+                            $data['weight'] = $value;
+                            break;
+                        case 'Width':
+                            $data['width'] = $value;
+                            break;
+                        case 'Length':
+                            $data['length'] = $value;
+                            break;
+                        case 'Height':
+                            $data['height'] = $value;
+                            break;
+                        case 'Product Range':
+                            $data['product_range'] = $value;
+                            break;
+                        case 'Product Section':
+                            $data['product_section'] = $value;
+                            break;
+                        case 'Production Type':
+                            $data['production_type'] = $value;
+                            break;
+                    }
+                }
+
+                // Validation
+                $validator = \Validator::make($data, [
+                    'product_code' => 'required|unique:products,product_code',
+                ]);
+
+                if ($validator->fails()) {
+                    continue; // skip invalid rows or collect error messages
+                }
+
+                Product::create($data);
+            }
+
+            return response()->json([
+                'message' => 'Data inserted successfully',
+                'has_file' => $hasFile
+            ]);
         }
     }
 }
