@@ -66,3 +66,8 @@ div#deleteConfirmModal .modal-footer {
     outline: 0;
     border-color: black;
 }
+
+.product-row .nav-pills .nav-link {
+    border: 1px solid #00365a;
+    margin-bottom: 12px;
+}

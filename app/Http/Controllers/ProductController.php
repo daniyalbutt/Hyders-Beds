@@ -20,15 +20,29 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
-    {
-        $data = Product::where('status', 0)->orderBy('id', 'desc');
-        if($request->product_code != null){
-            $data = $data->where('product_code', 'LIKE', "%{$request->product_code}%");
+    public function index(Request $request){
+
+        $query = Product::where('status', 0);
+
+        if ($request->product_code) {
+            $query->where('product_code', 'LIKE', "%{$request->product_code}%");
         }
-        $data = $data->paginate(20);
+
+        $products = $query
+            ->orderBy('product_section')
+            ->orderBy('product_range')
+            ->orderBy('id', 'desc')
+            ->get(); // remove pagination if you want proper grouping
+
+        // Group first by section, then by range
+        $data = $products->groupBy([
+            'product_section',
+            'product_range',
+        ]);
+
         return view('product.index', compact('data'));
     }
+
 
     /**
      * Show the form for creating a new resource.

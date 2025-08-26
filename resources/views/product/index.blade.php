@@ -44,55 +44,98 @@
             {{ session()->get('success') }}
         </div>
         @endif
-        <table class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
-            <thead>
-                <tr>
-                    <th>Product Code</th>
-                    <th>Description</th>
-                    <th>Product Range</th>
-                    <th>Product Section</th>
-                    <th>Production Type</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($data as $key => $value)
-                <tr>
-                    <td>
-                        <p class="list-item-heading">{{ $value->product_code }}</p>
-                    </td>
-                    <td>
-                        <p class="text-muted">{{ $value->description }}</p>
-                    </td>
-                    <td>
-                        <p class="text-muted"><span class="badge badge-info badge-sm">{{ $value->product_range }}</span></p>
-                    </td>
-                    <td>
-                        <p class="text-muted">{{ $value->product_section }}</p>
-                    </td>
-                    <td>
-                        <p class="text-muted"><span class="badge badge-secondary badge-sm">{{ $value->production_type }}</span></p>
-                    </td>
-                    <td>
-                        <div class="d-flex">
-                            @can('edit product')
-                            <a href="{{ route('products.edit', $value->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
-                            @endcan
-                            @can('delete product')
-                            <form action="{{ route('products.destroy', $value->id) }}" method="post">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="glyph-icon simple-icon-trash"></i></button>
-                            </form>
-                            @endcan
+        <div class="row product-row">
+            <div class="col-lg-2">
+                <div class="nav flex-column nav-pills" id="section-tab" role="tablist" aria-orientation="vertical">
+                    @php $firstSection = true; @endphp
+                    @foreach($data as $section => $ranges)
+                        <a 
+                            class="nav-link {{ $firstSection ? 'active' : '' }}" 
+                            id="section-{{ Str::slug($section) }}-tab" 
+                            data-toggle="pill" 
+                            href="#section-{{ Str::slug($section) }}" 
+                            role="tab" 
+                            aria-controls="section-{{ Str::slug($section) }}" 
+                            aria-selected="{{ $firstSection ? 'true' : 'false' }}">
+                            {{ $section }}
+                        </a>
+                        @php $firstSection = false; @endphp
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="col-lg-10">
+                <div class="tab-content" id="section-tabContent">
+                    @php $firstSection = true; @endphp
+                    @foreach($data as $section => $ranges)
+                        <div 
+                            class="tab-pane fade {{ $firstSection ? 'show active' : '' }}" 
+                            id="section-{{ Str::slug($section) }}" 
+                            role="tabpanel" 
+                            aria-labelledby="section-{{ Str::slug($section) }}-tab">
+
+                            <div class="row">
+                                
+                                <div class="col-lg-3">
+                                    <div class="nav flex-column nav-pills" id="range-tab-{{ Str::slug($section) }}" role="tablist" aria-orientation="vertical">
+                                        @php $firstRange = true; @endphp
+                                        @foreach($ranges as $range => $items)
+                                            <a 
+                                                class="nav-link {{ $firstRange ? 'active' : '' }}" 
+                                                id="range-{{ Str::slug($section.'-'.$range) }}-tab" 
+                                                data-toggle="pill" 
+                                                href="#range-{{ Str::slug($section.'-'.$range) }}" 
+                                                role="tab" 
+                                                aria-controls="range-{{ Str::slug($section.'-'.$range) }}" 
+                                                aria-selected="{{ $firstRange ? 'true' : 'false' }}">
+                                                {{ $range }}
+                                            </a>
+                                            @php $firstRange = false; @endphp
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-9">
+                                    <div class="tab-content" id="range-tabContent-{{ Str::slug($section) }}">
+                                        @php $firstRange = true; @endphp
+                                        @foreach($ranges as $range => $items)
+                                            <div 
+                                                class="tab-pane fade {{ $firstRange ? 'show active' : '' }}" 
+                                                id="range-{{ Str::slug($section.'-'.$range) }}" 
+                                                role="tabpanel" 
+                                                aria-labelledby="range-{{ Str::slug($section.'-'.$range) }}-tab">
+
+                                                <table class="table table-stripped responsive nowrap">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Code</th>
+                                                            <th>Description</th>
+                                                            <th>Price</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($items as $product)
+                                                            <tr>
+                                                                <td>{{ $product->product_code }}</td>
+                                                                <td>{{ $product->description }}</td>
+                                                                <td>{{ $product->sale_price }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+
+                                            </div>
+                                            @php $firstRange = false; @endphp
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        <div class="pagination-box">
-            {{ $data->appends(request()->except('page'))->links() }}
+                        @php $firstSection = false; @endphp
+                    @endforeach
+                </div>
+            </div>
         </div>
     </div>
 </div>
