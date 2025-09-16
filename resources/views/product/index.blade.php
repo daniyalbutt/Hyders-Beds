@@ -46,18 +46,15 @@
         @endif
         <div class="row product-row">
             <div class="col-lg-2">
-                <div class="nav flex-column nav-pills" id="section-tab" role="tablist" aria-orientation="vertical">
+                <div class="nav flex-column nav-pills" id="section-tab" role="tablist">
                     @php $firstSection = true; @endphp
-                    @foreach($data as $section => $ranges)
-                        <a 
-                            class="nav-link {{ $firstSection ? 'active' : '' }}" 
-                            id="section-{{ Str::slug($section) }}-tab" 
-                            data-toggle="pill" 
-                            href="#section-{{ Str::slug($section) }}" 
-                            role="tab" 
-                            aria-controls="section-{{ Str::slug($section) }}" 
-                            aria-selected="{{ $firstSection ? 'true' : 'false' }}">
-                            {{ $section }}
+                    @foreach($data as $section => $types)
+                        <a class="nav-link {{ $firstSection ? 'active' : '' }}"
+                        id="section-{{ Str::slug($section) }}-tab"
+                        data-toggle="pill"
+                        href="#section-{{ Str::slug($section) }}"
+                        role="tab">
+                        {{ $section }}
                         </a>
                         @php $firstSection = false; @endphp
                     @endforeach
@@ -67,65 +64,91 @@
             <div class="col-lg-10">
                 <div class="tab-content" id="section-tabContent">
                     @php $firstSection = true; @endphp
-                    @foreach($data as $section => $ranges)
-                        <div 
-                            class="tab-pane fade {{ $firstSection ? 'show active' : '' }}" 
-                            id="section-{{ Str::slug($section) }}" 
-                            role="tabpanel" 
-                            aria-labelledby="section-{{ Str::slug($section) }}-tab">
+                    @foreach($data as $section => $types)
+                        <div class="tab-pane fade {{ $firstSection ? 'show active' : '' }}"
+                            id="section-{{ Str::slug($section) }}"
+                            role="tabpanel">
 
                             <div class="row">
-                                
+                                {{-- Production Types --}}
                                 <div class="col-lg-3">
-                                    <div class="nav flex-column nav-pills" id="range-tab-{{ Str::slug($section) }}" role="tablist" aria-orientation="vertical">
-                                        @php $firstRange = true; @endphp
-                                        @foreach($ranges as $range => $items)
-                                            <a 
-                                                class="nav-link {{ $firstRange ? 'active' : '' }}" 
-                                                id="range-{{ Str::slug($section.'-'.$range) }}-tab" 
-                                                data-toggle="pill" 
-                                                href="#range-{{ Str::slug($section.'-'.$range) }}" 
-                                                role="tab" 
-                                                aria-controls="range-{{ Str::slug($section.'-'.$range) }}" 
-                                                aria-selected="{{ $firstRange ? 'true' : 'false' }}">
-                                                {{ $range }}
+                                    <div class="nav flex-column nav-pills" id="type-tab-{{ Str::slug($section) }}" role="tablist">
+                                        @php $firstType = true; @endphp
+                                        @foreach($types as $type => $ranges)
+                                            <a class="nav-link {{ $firstType ? 'active' : '' }}"
+                                            id="type-{{ Str::slug($section.'-'.$type) }}-tab"
+                                            data-toggle="pill"
+                                            href="#type-{{ Str::slug($section.'-'.$type) }}"
+                                            role="tab">
+                                            {{ $type }}
                                             </a>
-                                            @php $firstRange = false; @endphp
+                                            @php $firstType = false; @endphp
                                         @endforeach
                                     </div>
                                 </div>
 
                                 <div class="col-lg-9">
-                                    <div class="tab-content" id="range-tabContent-{{ Str::slug($section) }}">
-                                        @php $firstRange = true; @endphp
-                                        @foreach($ranges as $range => $items)
-                                            <div 
-                                                class="tab-pane fade {{ $firstRange ? 'show active' : '' }}" 
-                                                id="range-{{ Str::slug($section.'-'.$range) }}" 
-                                                role="tabpanel" 
-                                                aria-labelledby="range-{{ Str::slug($section.'-'.$range) }}-tab">
+                                    <div class="tab-content" id="type-tabContent-{{ Str::slug($section) }}">
+                                        @php $firstType = true; @endphp
+                                        @foreach($types as $type => $ranges)
+                                            <div class="tab-pane fade {{ $firstType ? 'show active' : '' }}"
+                                                id="type-{{ Str::slug($section.'-'.$type) }}"
+                                                role="tabpanel">
 
-                                                <table class="table table-stripped responsive nowrap">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Code</th>
-                                                            <th>Description</th>
-                                                            <th>Price</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach($items as $product)
-                                                            <tr>
-                                                                <td>{{ $product->product_code }}</td>
-                                                                <td>{{ $product->description }}</td>
-                                                                <td>{{ $product->sale_price }}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
+                                                {{-- Ranges --}}
+                                                <div class="row">
+                                                    <div class="col-lg-4">
+                                                        <div class="nav flex-column nav-pills" id="range-tab-{{ Str::slug($section.'-'.$type) }}" role="tablist">
+                                                            @php $firstRange = true; @endphp
+                                                            @foreach($ranges as $range => $products)
+                                                                <a class="nav-link {{ $firstRange ? 'active' : '' }}"
+                                                                id="range-{{ Str::slug($section.'-'.$type.'-'.$range) }}-tab"
+                                                                data-toggle="pill"
+                                                                href="#range-{{ Str::slug($section.'-'.$type.'-'.$range) }}"
+                                                                role="tab">
+                                                                {{ $range }}
+                                                                </a>
+                                                                @php $firstRange = false; @endphp
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-lg-8">
+                                                        <div class="tab-content" id="range-tabContent-{{ Str::slug($section.'-'.$type) }}">
+                                                            @php $firstRange = true; @endphp
+                                                            @foreach($ranges as $range => $products)
+                                                                <div class="tab-pane fade {{ $firstRange ? 'show active' : '' }}"
+                                                                    id="range-{{ Str::slug($section.'-'.$type.'-'.$range) }}"
+                                                                    role="tabpanel">
+
+                                                                    <table class="table table-stripped responsive nowrap">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>Code</th>
+                                                                                <th>Description</th>
+                                                                                <th>Price</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @foreach($products as $product)
+                                                                                <tr>
+                                                                                    <td>{{ $product->product_code }}</td>
+                                                                                    <td>{{ $product->description }}</td>
+                                                                                    <td>{{ $product->sale_price }}</td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        </tbody>
+                                                                    </table>
+
+                                                                </div>
+                                                                @php $firstRange = false; @endphp
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </div>
 
                                             </div>
-                                            @php $firstRange = false; @endphp
+                                            @php $firstType = false; @endphp
                                         @endforeach
                                     </div>
                                 </div>

@@ -2,31 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
-use App\Models\CustomerSales;
-use App\Models\CustomerTrade;
-use App\Models\CustomerBank;
-use App\Models\CustomerLimited;
-use App\Models\CustomerPartnership;
 use App\Models\User;
+use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Auth;
 
-class CustomerController extends Controller
+class OrderController extends Controller
 {
     function __construct(){
-        $this->middleware('permission:customer|create customer|edit customer|delete customer', ['only' => ['index','show']]);
-        $this->middleware('permission:create customer', ['only' => ['create','store']]);
-        $this->middleware('permission:edit customer', ['only' => ['edit','update']]);
-        $this->middleware('permission:delete customer', ['only' => ['destroy']]);
+        $this->middleware('permission:order|create order|edit order|delete order', ['only' => ['index','show']]);
+        $this->middleware('permission:create order', ['only' => ['create','store']]);
+        $this->middleware('permission:edit order', ['only' => ['edit','update']]);
+        $this->middleware('permission:delete order', ['only' => ['destroy']]);
     }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $data = Customer::where('status', 0)->orderBy('id', 'desc')->paginate(20);
-        return view('customer.index', compact('data'));
+        $data = Order::where('status', 0)->orderBy('id', 'desc')->paginate(20);
+        return view('order.index', compact('data'));
     }
 
     /**
@@ -34,7 +30,8 @@ class CustomerController extends Controller
      */
     public function create()
     {
-        return view('customer.create');
+        $salesPersons = User::role('Sales Person')->get();
+        return view('order.create', compact('salesPersons'));
     }
 
     /**
@@ -43,26 +40,23 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:customers',
-            'telephone' => 'required',
+            'customer' => 'required',
             'address' => 'required',
-            'city' => 'required',
-            'country' => 'required',
-            'postcode' => 'required'
+            'order_date' => 'required'
         ]);
-        $data = new Customer();
-        $data->name = $request->name;
-        $data->email = $request->email;
-        $data->telephone = $request->telephone;
+        $data = new Order();
+        $data->customer = $request->customer;
         $data->address = $request->address;
-        $data->city = $request->city;
-        $data->country = $request->country;
-        $data->postcode = $request->postcode;
-        $data->description = $request->description;
+        $data->order_date = $request->order_date;
+        $data->order_reference = $request->order_reference;
+        $data->order_type = $request->order_type;
+        $data->required_date = $request->required_date;
+        $data->salesperson_one = $request->salesperson_one;
+        $data->salesperson_two = $request->salesperson_two;
+        $data->customer_contact = $request->customer_contact;
         $data->added_by = Auth::user()->id;
         $data->save();
-        return redirect()->route('customers.edit', $data->id);
+        return redirect()->route('orders.edit', $data->id);
     }
 
     /**
@@ -78,13 +72,17 @@ class CustomerController extends Controller
      */
     public function edit($id)
     {
-        $data = Customer::find($id);
+        $data = Order::find($id);
         if($data->status == 1){
-            return redirect()->route('customers.index');
+            return redirect()->route('orders.index');
         }
-        
-        $sales_person = User::role('Sales Person')->get();
-        return view('customer.edit', compact('data', 'sales_person'));
+        $salesPersons = User::role('Sales Person')->get();
+        $products = Product::where('status', 0)
+            ->selectRaw('MIN(id) as id, product_section')
+            ->groupBy('product_section')
+            ->orderBy('product_section', 'asc') // or 'desc'
+            ->get();
+        return view('order.edit', compact('data', 'salesPersons', 'products'));
     }
 
     /**
@@ -296,28 +294,5 @@ class CustomerController extends Controller
             'success' => true,
             'message' => 'Customer Deleted Successfully'
         ]);
-    }
-
-    public function search(Request $request)
-    {
-        $query = $request->get('query');
-        $customers = Customer::where(function ($q) use ($query) {
-            $q->where('name', 'like', "%{$query}%")
-                ->orWhere('email', 'like', "%{$query}%");
-        })
-        ->where('status', 0)
-        ->limit(10)
-        ->get();
-        $formatted = [];
-        foreach ($customers as $customer) {
-            $formatted[] = [
-                'id' => $customer->id,
-                'text' => $customer->name . ' (' . $customer->email . ')',
-                'address' => $customer->address,
-                'city' => $customer->city,
-                'country' => $customer->country,
-            ];
-        }
-        return response()->json($formatted);
     }
 }

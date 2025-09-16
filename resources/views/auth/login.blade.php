@@ -27,6 +27,9 @@
                             <label class="form-group has-float-label mb-4">
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
                                 <span>Password</span>
+                                <i id="togglePassword" 
+                                   class="iconsminds-eye position-absolute" 
+                                   style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
                             </label>
                             @error('password')
                                 <span class="invalid-feedback" role="alert">
@@ -43,4 +46,15 @@
         </div>
     </div>
 </main>
+<script>
+    document.getElementById('togglePassword').addEventListener('click', function () {
+        const passwordInput = document.getElementById('password');
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+
+        // toggle eye / eye-off icon
+        this.classList.toggle('iconsminds-eye');
+        this.classList.toggle('iconsminds-eye-close');
+    });
+</script>
 @endsection

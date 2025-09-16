@@ -20,8 +20,8 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request){
-
+    public function index(Request $request)
+    {
         $query = Product::where('status', 0);
 
         if ($request->product_code) {
@@ -30,13 +30,15 @@ class ProductController extends Controller
 
         $products = $query
             ->orderBy('product_section')
+            ->orderBy('production_type')
             ->orderBy('product_range')
             ->orderBy('id', 'desc')
-            ->get(); // remove pagination if you want proper grouping
+            ->get();
 
-        // Group first by section, then by range
+        // Group by section → type → range
         $data = $products->groupBy([
             'product_section',
+            'production_type',
             'product_range',
         ]);
 
@@ -214,5 +216,36 @@ class ProductController extends Controller
                 'has_file' => $hasFile
             ]);
         }
+    }
+
+    public function getProductionTypes($section)
+    {
+        return Product::where('status', 0)
+            ->where('product_section', $section)
+            ->select('production_type')
+            ->distinct()
+            ->orderBy('production_type')
+            ->pluck('production_type');
+    }
+
+    public function getRanges($section, $type)
+    {
+        return Product::where('status', 0)
+            ->where('product_section', $section)
+            ->where('production_type', $type)
+            ->select('product_range')
+            ->distinct()
+            ->orderBy('product_range')
+            ->pluck('product_range');
+    }
+
+    public function getProducts($section, $type, $range)
+    {
+        return Product::where('status', 0)
+            ->where('product_section', $section)
+            ->where('production_type', $type)
+            ->where('product_range', $range)
+            ->orderBy('id')
+            ->get();
     }
 }
