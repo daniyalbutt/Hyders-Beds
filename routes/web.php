@@ -36,4 +36,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/ranges/{section}/{type}', [ProductController::class, 'getRanges']);
     Route::get('/products/list/{section}/{type}/{range}', [ProductController::class, 'getProducts']);
     Route::resource('orders', OrderController::class);
+    Route::post('/orders/{order}/items', [OrderController::class, 'addItem'])->name('orders.addItem');
+    Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])->name('orders.removeItem');
 });

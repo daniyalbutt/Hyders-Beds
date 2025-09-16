@@ -111,20 +111,42 @@
 							@endif
 							<div class="row">
 								<div class="col-md-12">
-									<table class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
+									<table id="orderTable" class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
 										<thead>
 											<tr>
 												<th>Code</th>
 												<th>Description</th>
 												<th>Price</th>
-												<th>Quantity</th>
+												<th>QTY</th>
 												<th>Total Price</th>
 												<th>Action</th>
 											</tr>
 										</thead>
 										<tbody>
-
+											@foreach($data->items as $item)
+											<tr data-code="{{ $item->product_code }}">
+												<td class="align-middle">{{ $item->product_code }}</td>
+												<td class="align-middle">{{ $item->description }}</td>
+												<td class="align-middle">{{ number_format($item->price, 2) }}</td>
+												<td class="align-middle item-qty">{{ $item->quantity }}</td>
+												<td class="align-middle item-total">{{ number_format($item->total, 2) }}</td>
+												<td class="align-middle">
+													<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="{{ $item->id }}">
+														<i class="glyph-icon simple-icon-trash"></i>
+													</button>
+												</td>
+											</tr>
+											@endforeach
 										</tbody>
+										<tfoot>
+											<tr>
+												<td colspan="4" class="text-right font-weight-bold">Grand Total:</td>
+												<td id="grandTotal" class="font-weight-bold">
+													{{ number_format($data->items->sum('total'), 2) }}
+												</td>
+												<td></td>
+											</tr>
+										</tfoot>
 									</table>
 								</div>
 							</div>
@@ -190,7 +212,6 @@
 			historyStack.push($('#drilldownContent').html());
 			showLoader();
 			$.get('/products/list/' + section + '/' + type + '/' + range, function(data){
-				console.log(data);
 				let html = '<h6>Products in <b>'+range+'</b></h6><ul class="product-section product-list">';
 				data.forEach(function(p){
 					let codeHtml = p.product_code ? `<h6>${p.product_code}</h6>` : '';
@@ -239,28 +260,68 @@
 			let desc = $(this).data('desc');
 			let price = parseFloat($(this).data('price'));
 			let qty = parseInt($(this).closest('.quantity-form').find('.qty-input').val()) || 1;
+			let orderId = "{{ $data->id }}";
 
-			let total = price * qty;
-
-			let row = `
-				<tr>
-					<td class="align-middle">${code}</td>
-					<td class="align-middle">${desc}</td>
-					<td class="align-middle">${price.toFixed(2)}</td>
-					<td class="align-middle">${qty}</td>
-					<td class="align-middle">${total.toFixed(2)}</td>
-					<td class="align-middle"><button type="button" class="btn btn-danger shadow btn-xs sharp"><i class="glyph-icon simple-icon-trash"></i></button></td>
-				</tr>
-			`;
-
-			$('.table tbody').append(row);
-
-			// Optionally reset the form
+			$.ajax({
+				url: '/orders/' + orderId + '/items',
+				method: 'POST',
+				data: {
+					_token: '{{ csrf_token() }}', // CSRF token
+					code: code,
+					description: desc,
+					price: price,
+					qty: qty
+				},
+				success: function(response) {
+					if (response.success) {
+						let item = response.item;
+						let existingRow = $('#orderTable tbody tr[data-code="'+ item.product_code +'"]');
+						if (existingRow.length > 0) {
+							existingRow.find('.item-qty').text(item.quantity);
+							existingRow.find('.item-total').text(parseFloat(item.total).toFixed(2));
+							existingRow.addClass('table-warning');
+							setTimeout(() => {
+								existingRow.removeClass('table-warning');
+							}, 800);
+						} else {
+							let row = `
+								<tr data-code="${item.product_code}">
+									<td class="align-middle">${item.product_code}</td>
+									<td class="align-middle">${item.description}</td>
+									<td class="align-middle">${parseFloat(item.price).toFixed(2)}</td>
+									<td class="align-middle item-qty">${item.quantity}</td>
+									<td class="align-middle item-total">${item.total.toFixed(2)}</td>
+									<td class="align-middle">
+										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="${item.id}"><i class="glyph-icon simple-icon-trash"></i></button>
+									</td>
+								</tr>
+							`;
+							$('#orderTable tbody').append(row);
+							row.fadeIn(300);
+						}
+						updateGrandTotal();
+					}
+				}
+			});
 			$(this).closest('.quantity-form').addClass('d-none');
 		});
 
 		$(document).on('click', '.remove-item', function(){
-			$(this).closest('tr').remove();
+			let row = $(this).closest('tr');
+			let itemId = $(this).data('id');
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: '/orders/' + orderId + '/items/' + itemId,
+				method: 'DELETE',
+				data: { _token: '{{ csrf_token() }}' },
+				success: function() {
+					row.fadeOut(300, function(){
+						$(this).remove();
+						updateGrandTotal();
+					});
+				}
+			});
 		});
 
 		$(document).on('click', '.quantity-form', function(e){
@@ -268,5 +329,14 @@
 		});
 
 	});
+
+	function updateGrandTotal() {
+		let total = 0;
+		$('#orderTable tbody tr').each(function(){
+			let rowTotal = parseFloat($(this).find('.item-total').text()) || 0;
+			total += rowTotal;
+		});
+		$('#grandTotal').text(total.toFixed(2));
+	}
 </script>
 @endpush

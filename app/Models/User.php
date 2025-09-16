@@ -47,4 +47,9 @@ class User extends Authenticatable
     public function getRole(){
         return $this->getRoleNames()->first();
     }
+
+    public function orderItems(){
+        return $this->hasMany(OrderItem::class);
+    }
+    
 }

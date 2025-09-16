@@ -13,5 +13,8 @@ class Order extends Model
         return $this->hasOne(Customer::class, 'id', 'customer');
     }
 
+    public function items(){
+        return $this->hasMany(OrderItem::class);
+    }
 
 }

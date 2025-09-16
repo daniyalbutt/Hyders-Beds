@@ -295,4 +295,48 @@ class OrderController extends Controller
             'message' => 'Customer Deleted Successfully'
         ]);
     }
+
+    public function addItem(Request $request, $orderId){
+        $order = Order::findOrFail($orderId);
+        $validated = $request->validate([
+            'code' => 'required|string',
+            'description' => 'required|string',
+            'price' => 'required|numeric',
+            'qty' => 'required|integer|min:1',
+        ]);
+        $userId = Auth::id();
+        $item = $order->items()
+            ->where('product_code', $validated['code'])
+            ->first();
+
+        if ($item) {
+            $item->quantity += $validated['qty'];
+            $item->total = $item->quantity * $item->price;
+            $item->save();
+        } else {
+            $item = $order->items()->create([
+                'product_code' => $validated['code'],
+                'description'  => $validated['description'],
+                'price'        => $validated['price'],
+                'quantity'     => $validated['qty'],
+                'total'        => $validated['price'] * $validated['qty'],
+                'user_id'      => $userId,
+            ]);
+        }
+        return response()->json([
+            'success' => true,
+            'item' => $item
+        ]);
+    }
+
+
+    public function removeItem($orderId, $itemId){
+        $order = Order::findOrFail($orderId);
+        $item = $order->items()->findOrFail($itemId);
+        $item->delete();
+        return response()->json(['success' => true]);
+    }
+
+
+
 }

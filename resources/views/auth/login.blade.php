@@ -28,7 +28,7 @@
                                 <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
                                 <span>Password</span>
                                 <i id="togglePassword" 
-                                   class="iconsminds-eye position-absolute" 
+                                   class="fa fa-eye position-absolute" 
                                    style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
                             </label>
                             @error('password')
@@ -52,9 +52,9 @@
         const type = passwordInput.type === 'password' ? 'text' : 'password';
         passwordInput.type = type;
 
-        // toggle eye / eye-off icon
-        this.classList.toggle('iconsminds-eye');
-        this.classList.toggle('iconsminds-eye-close');
+        // toggle eye / eye-slash icon
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
     });
 </script>
 @endsection
