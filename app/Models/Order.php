@@ -17,4 +17,8 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function deposits(){
+        return $this->hasMany(Deposit::class);
+    }
+
 }

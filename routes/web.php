@@ -38,4 +38,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('orders', OrderController::class);
     Route::post('/orders/{order}/items', [OrderController::class, 'addItem'])->name('orders.addItem');
     Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])->name('orders.removeItem');
+    Route::post('/orders/{order}/deposit', [OrderController::class, 'addDeposit'])->name('orders.deposit');
+    Route::delete('/orders/{order}/deposit/{deposit}', [OrderController::class, 'removeDeposit'])->name('orders.deposit.remove');
+    Route::post('/orders/{order}/items/{item}/update-qty', [OrderController::class, 'updateQty'])->name('orders.items.updateQty');
+
 });

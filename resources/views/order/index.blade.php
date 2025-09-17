@@ -82,8 +82,11 @@
                     </td>
                     <td>
                         <div class="d-flex">
+                            @can('order')
+                            <a href="{{ route('orders.show', $value->id) }}" class="btn btn-info shadow btn-xs sharp mr-1"><i class="glyph-icon iconsminds-blinklist"></i></a>
+                            @endcan
                             @can('edit order')
-                            <a href="{{ route('orders.edit', $value->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
+                            <a href="{{ route('orders.edit', $value->id) }}" class="btn btn-primary shadow btn-xs sharp mr-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
                             @endcan
                             @can('delete order')
                             <form action="{{ route('orders.destroy', $value->id) }}" method="post">

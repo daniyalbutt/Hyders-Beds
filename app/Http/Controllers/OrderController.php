@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Deposit;
 use Illuminate\Http\Request;
 use Auth;
 
@@ -62,9 +64,9 @@ class OrderController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show(Order $order)
     {
-        //
+        return view('order.show');
     }
 
     /**
@@ -303,6 +305,7 @@ class OrderController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric',
             'qty' => 'required|integer|min:1',
+            'product' => 'required'
         ]);
         $userId = Auth::id();
         $item = $order->items()
@@ -315,6 +318,7 @@ class OrderController extends Controller
             $item->save();
         } else {
             $item = $order->items()->create([
+                'product_id'   => $request->product ?? null,
                 'product_code' => $validated['code'],
                 'description'  => $validated['description'],
                 'price'        => $validated['price'],
@@ -337,6 +341,54 @@ class OrderController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function addDeposit(Request $request, $orderId){
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:255',
+        ]);
+        $get_order = Order::find($orderId);
+
+        $deposit = Deposit::create([
+            'order_id' => $orderId,
+            'customer' => $get_order->customer,
+            'user_id' => Auth::id(),
+            'amount' => $validated['amount'],
+            'description' => $validated['description'],
+        ]);
+
+        return response()->json(['success' => true, 'deposit' => $deposit]);
+    }
+
+    public function removeDeposit($orderId, $depositId){
+        $order = Order::findOrFail($orderId);
+        $deposit = $order->deposits()->where('id', $depositId)->firstOrFail();
+        $deposit->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Deposit removed successfully'
+        ]);
+    }
+
+    public function updateQty(Request $request, Order $order, OrderItem $item)
+    {
+        $validated = $request->validate([
+            'qty' => 'required|integer|min:1',
+        ]);
+
+        if ($item->order_id !== $order->id) {
+            return response()->json(['success' => false, 'message' => 'Item not found in this order'], 404);
+        }
+
+        $item->quantity = $validated['qty'];
+        $item->total = $item->price * $validated['qty'];
+        $item->save();
+
+        return response()->json([
+            'success' => true,
+            'item' => $item,
+            'new_total' => $order->items()->sum('total'), // refresh order total
+        ]);
+    }
 
 
 }

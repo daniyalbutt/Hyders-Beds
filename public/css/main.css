@@ -147,3 +147,13 @@ ul.product-section.product-list li a {
     text-align: left;
     padding: 10px 20px;
 }
+
+.item-qty {
+    position: relative;
+}
+
+.edit-qty {
+    position: absolute;
+    right: -7px;
+    top: 12px;
+}

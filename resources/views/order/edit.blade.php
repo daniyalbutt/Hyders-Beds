@@ -67,7 +67,7 @@
 	</div>
 	<div class="row">
 		<div class="col-lg-4">
-			<div class="card h-100 mt-4">
+			<div class="card mt-4">
 				<div class="card-body">
 					<h5 class="card-title mb-3">Sections</h5>
 					<button id="backBtn" type="button" class="btn btn-sm btn-secondary mb-3 d-none">← Back</button>
@@ -118,17 +118,25 @@
 												<th>Description</th>
 												<th>Price</th>
 												<th>QTY</th>
-												<th>Total Price</th>
+												<th>Total</th>
 												<th>Action</th>
 											</tr>
 										</thead>
 										<tbody>
 											@foreach($data->items as $item)
-											<tr data-code="{{ $item->product_code }}">
+											<tr data-code="{{ $item->product_code }}" data-id="{{ $item->product_id }}">
 												<td class="align-middle">{{ $item->product_code }}</td>
 												<td class="align-middle">{{ $item->description }}</td>
 												<td class="align-middle">{{ number_format($item->price, 2) }}</td>
-												<td class="align-middle item-qty">{{ $item->quantity }}</td>
+												<td class="align-middle item-qty">
+													<span class="qty-text">{{ $item->quantity }}</span>
+													<button type="button" class="btn btn-xs btn-link text-primary edit-qty" 
+															data-id="{{ $item->id }}" 
+															data-product="{{ $item->product_id }}" 
+															data-qty="{{ $item->quantity }}">
+														<i class="glyph-icon simple-icon-pencil"></i>
+													</button>
+												</td>
 												<td class="align-middle item-total">{{ number_format($item->total, 2) }}</td>
 												<td class="align-middle">
 													<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="{{ $item->id }}">
@@ -139,12 +147,47 @@
 											@endforeach
 										</tbody>
 										<tfoot>
-											<tr>
-												<td colspan="4" class="text-right font-weight-bold">Grand Total:</td>
-												<td id="grandTotal" class="font-weight-bold">
-													{{ number_format($data->items->sum('total'), 2) }}
+											@foreach($data->deposits as $deposit)
+											<tr class="deposit-row">
+												<td colspan="4" class="text-right font-weight-bold align-middle">
+													<div class="d-flex justify-content-end align-items-center">
+														Deposit <span class="badge badge-dark ml-2">{{$deposit->id}}</span> <input type="text" value="{{ $deposit->description }}" style="width: 200px;height: 30px;margin-left: 10px;">
+													</div>
 												</td>
+												<td class="text-success font-weight-bold align-middle deposit-amount" data-amount="{{ number_format($deposit->amount, 2) }}">-{{ number_format($deposit->amount, 2) }}</td>
+												<td class="align-middle">
+													<button type="button" class="btn btn-danger shadow btn-xs sharp remove-deposit" data-id="{{ $deposit->id }}">
+														<i class="glyph-icon simple-icon-trash"></i>
+													</button>
+												</td>
+											</tr>
+											@endforeach
+											@php
+												$itemsTotal    = $data->items->sum('total');
+												$depositsTotal = $data->deposits->sum('amount');
+
+												$netTotal = $itemsTotal - $depositsTotal;
+												$vat      = $netTotal * 0.20;
+												$grand    = $netTotal + $vat;
+											@endphp
+											<tr>
+												<td colspan="4" class="text-right font-weight-bold align-middle">Total:</td>
+												<td id="totalAmount" class="align-middle">{{ number_format($netTotal, 2) }}</td>
+												<td class="align-middle">
+													<button type="button" class="btn btn-primary btn-xs" id="depositBtn">Deposit</button>
+												</td>
+											</tr>
+											<tr>
+												<td colspan="4" class="text-right font-weight-bold">VAT (20%):</td>
+												<td id="vatAmount">{{ number_format($vat, 2) }}</td>
 												<td></td>
+											</tr>
+											<tr>
+												<td colspan="4" class="text-right font-weight-bold align-middle">Grand Total:</td>
+												<td id="grandTotal" class="align-middle">{{ number_format($grand, 2) }}</td>
+												<td class="align-middle">
+													<button type="button" class="btn btn-info btn-xs" id="paymentBtn">Payment</button>
+												</td>
 											</tr>
 										</tfoot>
 									</table>
@@ -157,6 +200,98 @@
 		</div>
 	</div>
 </form>
+
+<div class="modal fade" id="depositModal" tabindex="-1" role="dialog" aria-labelledby="depositModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form id="depositForm">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Deposit</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Deposit Amount</label>
+                        <input type="number" step="0.01" min="0" name="amount" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Deposit</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form id="paymentForm">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Make Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Date <strong>*</strong></label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Type <strong>*</strong></label>
+						<select name="payment_type" class="form-control">
+							<option value="">Payment Type</option>
+							<option value="BACS">BACS</option>
+							<option value="CASH">CASH</option>
+							<option value="Credit Card">Credit Card</option>
+							<option value="Replacement - Not Paid">Replacement - Not Paid</option>
+						</select>
+                    </div>
+					<div class="form-group">
+                        <label>Reference <strong>*</strong></label>
+                        <input type="text" name="reference" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save Payment</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="changeQtyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white p-2">
+                <h6 class="modal-title">Change Quantity</h6>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="changeQtyForm">
+                    <input type="hidden" name="item_id" id="modalItemId">
+                    <input type="hidden" name="product_id" id="modalProductId">
+                    <div class="form-group mb-2">
+                        <label for="modalQty">Quantity</label>
+                        <input type="number" class="form-control form-control-sm" id="modalQty" name="quantity" min="1">
+                    </div>
+                    <button type="submit" class="btn btn-info btn-sm btn-block">Change Quantity</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -226,6 +361,7 @@
 							<div class="quantity-form d-none">
 								<input type="number" class="form-control form-control-sm qty-input mb-2" value="1" min="1">
 								<button type="button" class="btn btn-sm btn-success add-to-order"
+										data-product="${p.id}"
 										data-code="${p.product_code}"
 										data-desc="${p.description}"
 										data-price="${p.sale_price}">
@@ -256,6 +392,7 @@
 		});
 
 		$(document).on('click', '.add-to-order', function(){
+			let product = $(this).data('product');
 			let code = $(this).data('code');
 			let desc = $(this).data('desc');
 			let price = parseFloat($(this).data('price'));
@@ -266,7 +403,8 @@
 				url: '/orders/' + orderId + '/items',
 				method: 'POST',
 				data: {
-					_token: '{{ csrf_token() }}', // CSRF token
+					_token: '{{ csrf_token() }}',
+					product: product,
 					code: code,
 					description: desc,
 					price: price,
@@ -275,7 +413,7 @@
 				success: function(response) {
 					if (response.success) {
 						let item = response.item;
-						let existingRow = $('#orderTable tbody tr[data-code="'+ item.product_code +'"]');
+						let existingRow = $('#orderTable tbody tr[data-id="'+ item.product_id +'"]');
 						if (existingRow.length > 0) {
 							existingRow.find('.item-qty').text(item.quantity);
 							existingRow.find('.item-total').text(parseFloat(item.total).toFixed(2));
@@ -284,8 +422,8 @@
 								existingRow.removeClass('table-warning');
 							}, 800);
 						} else {
-							let row = `
-								<tr data-code="${item.product_code}">
+							let row = $(`
+								<tr data-code="${item.product_code}" data-id="${item.product_id}">
 									<td class="align-middle">${item.product_code}</td>
 									<td class="align-middle">${item.description}</td>
 									<td class="align-middle">${parseFloat(item.price).toFixed(2)}</td>
@@ -295,11 +433,11 @@
 										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="${item.id}"><i class="glyph-icon simple-icon-trash"></i></button>
 									</td>
 								</tr>
-							`;
+							`);
 							$('#orderTable tbody').append(row);
 							row.fadeIn(300);
 						}
-						updateGrandTotal();
+						updateTotals();
 					}
 				}
 			});
@@ -318,7 +456,7 @@
 				success: function() {
 					row.fadeOut(300, function(){
 						$(this).remove();
-						updateGrandTotal();
+						updateTotals();
 					});
 				}
 			});
@@ -328,15 +466,145 @@
 			e.stopPropagation();
 		});
 
+		$(document).on('click', '#depositBtn', function(){
+			$('#depositModal').modal('show');
+		});
+
+		$('#depositForm').on('submit', function(e){
+			e.preventDefault();
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: '/orders/' + orderId + '/deposit',
+				method: 'POST',
+				data: $(this).serialize(),
+				success: function(response){
+					if(response.success){
+						let deposit = response.deposit;
+						let row = `
+							<tr class="deposit-row" style="display:none;" data-id="${deposit.id}">
+								<td colspan="4" class="text-right font-weight-bold align-middle">
+									<div class="d-flex justify-content-end align-items-center">
+										Deposit <span class="badge badge-dark ml-2">${deposit.id}</span>
+										<input type="text" value="${deposit.description ?? ''}" 
+											class="form-control form-control-sm ml-2 deposit-desc" 
+											style="width:200px; height:30px;">
+									</div>
+								</td>
+								<td class="text-success font-weight-bold align-middle deposit-amount" data-amount="${parseFloat(deposit.amount).toFixed(2)}">-${parseFloat(deposit.amount).toFixed(2)}</td>
+								<td class="align-middle">
+									<button type="button" class="btn btn-danger shadow btn-xs sharp remove-deposit" data-id="${deposit.id}">
+										<i class="glyph-icon simple-icon-trash"></i>
+									</button>
+								</td>
+							</tr>
+						`;
+						if ($('#orderTable tbody .deposit-row').length > 0) {
+							$(row).insertAfter('#orderTable tbody .deposit-row:last').hide().fadeIn();
+						} else {
+							$(row).insertBefore('#orderTable tfoot tr:first').hide().fadeIn();
+						}
+						updateTotals();
+						$('#depositModal').modal('hide');
+						$('#depositForm')[0].reset();
+					}
+				}
+			});
+		});
+
+		$(document).on('click', '#paymentBtn', function(){
+			$('#paymentModal').modal('show');
+		});
+
+		$(document).on('click', '.edit-qty', function() {
+			let productId = $(this).data('product');
+			let itemId = $(this).data('id');
+			let qty = $(this).data('qty');
+			$('#modalItemId').val(itemId);
+			$('#modalProductId').val(productId);
+			$('#modalQty').val(qty);
+			$('#changeQtyModal').modal('show');
+		});
+
+		$('#changeQtyForm').on('submit', function(e) {
+			e.preventDefault();
+			let orderId = "{{ $data->id }}";
+			let itemId = $('#modalItemId').val();
+			let productId = $('#modalProductId').val();
+			let newQty = parseInt($('#modalQty').val());
+			$.ajax({
+				url: '/orders/' + orderId + '/items/' + itemId + '/update-qty',
+				method: 'POST',
+				data: {
+					_token: '{{ csrf_token() }}',
+					qty: newQty
+				},
+				success: function(response) {
+					if(response.success) {
+						let updated = response.item;
+						let row = $('#orderTable tbody tr[data-id="'+ productId +'"]');
+						row.find('.qty-text').text(updated.quantity);
+						row.find('.edit-qty').data('qty', updated.quantity);
+						row.find('.item-total').text(
+							parseFloat(updated.total).toLocaleString('en-US', {
+								minimumFractionDigits: 2, maximumFractionDigits: 2
+							})
+						);
+						$('#changeQtyModal').modal('hide');
+						updateTotals();
+					}
+				}
+			});
+		});
+
 	});
 
-	function updateGrandTotal() {
-		let total = 0;
-		$('#orderTable tbody tr').each(function(){
-			let rowTotal = parseFloat($(this).find('.item-total').text()) || 0;
-			total += rowTotal;
+	$(document).on('click', '.remove-deposit', function(){
+		let row = $(this).closest('tr');
+		let depositId = $(this).data('id');
+		let orderId = "{{ $data->id }}";
+
+		if(!confirm("Are you sure you want to remove this deposit?")) return;
+
+		$.ajax({
+			url: '/orders/' + orderId + '/deposit/' + depositId,
+			method: 'DELETE',
+			data: { _token: '{{ csrf_token() }}' },
+			success: function(response){
+				if(response.success){
+					row.fadeOut(300, function() {
+						$(this).remove();
+						updateTotals();
+					});
+				}
+			}
 		});
-		$('#grandTotal').text(total.toFixed(2));
+	});
+
+	function updateTotals() {
+		let subtotal = 0;
+		$('#orderTable tbody tr[data-code]').each(function() {
+			subtotal += parseFloat($(this).find('.item-total').text()) || 0;
+		});
+		let deposits = 0;
+		$('#orderTable tfoot tr.deposit-row').each(function() {
+			deposits += parseFloat($(this).find('.deposit-amount').data('amount')) || 0;
+		});
+		let netTotal = subtotal - deposits;
+		let vat = netTotal * 0.20;
+		let grandTotal = netTotal + vat;
+		$('#totalAmount').text(formatCurrency(netTotal.toFixed(2)));
+		$('#vatAmount').text(formatCurrency(vat.toFixed(2)));
+		$('#grandTotal').text(formatCurrency(grandTotal.toFixed(2)));
 	}
+
+
+	function formatCurrency(value) {
+		return parseFloat(value).toLocaleString('en-US', {
+			minimumFractionDigits: 2,
+			maximumFractionDigits: 2
+		});
+	}
+
 </script>
 @endpush
