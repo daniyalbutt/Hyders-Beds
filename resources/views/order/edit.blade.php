@@ -111,6 +111,11 @@
 							@endif
 							<div class="row">
 								<div class="col-md-12">
+									<ul class="btn-table">
+										<li>
+											<button type="button" class="btn btn-primary btn-xs">Delivery Label</button>
+										</li>
+									</ul>
 									<table id="orderTable" class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
 										<thead>
 											<tr>
@@ -500,7 +505,7 @@
 							</tr>
 						`;
 						if ($('#orderTable tbody .deposit-row').length > 0) {
-							$(row).insertAfter('#orderTable tbody .deposit-row:last').hide().fadeIn();
+							$(row).insertAfter('#orderTable tfoot .deposit-row:last').hide().fadeIn();
 						} else {
 							$(row).insertBefore('#orderTable tfoot tr:first').hide().fadeIn();
 						}

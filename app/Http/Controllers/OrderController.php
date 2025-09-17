@@ -66,7 +66,7 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
-        return view('order.show');
+        return view('order.show', compact('order'));
     }
 
     /**
@@ -327,9 +327,11 @@ class OrderController extends Controller
                 'user_id'      => $userId,
             ]);
         }
+        $order->recalcTotals();
         return response()->json([
             'success' => true,
-            'item' => $item
+            'item' => $item,
+            'order' => $order
         ]);
     }
 
@@ -338,7 +340,11 @@ class OrderController extends Controller
         $order = Order::findOrFail($orderId);
         $item = $order->items()->findOrFail($itemId);
         $item->delete();
-        return response()->json(['success' => true]);
+        $order->recalcTotals();
+        return response()->json([
+            'success' => true,
+            'order' => $order
+        ]);
     }
 
     public function addDeposit(Request $request, $orderId){
@@ -346,6 +352,7 @@ class OrderController extends Controller
             'amount' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:255',
         ]);
+
         $get_order = Order::find($orderId);
 
         $deposit = Deposit::create([
@@ -356,16 +363,24 @@ class OrderController extends Controller
             'description' => $validated['description'],
         ]);
 
-        return response()->json(['success' => true, 'deposit' => $deposit]);
+        $get_order->recalcTotals();
+
+        return response()->json([
+            'success' => true,
+            'deposit' => $deposit,
+            'order' => $get_order
+        ]);
     }
 
     public function removeDeposit($orderId, $depositId){
         $order = Order::findOrFail($orderId);
         $deposit = $order->deposits()->where('id', $depositId)->firstOrFail();
         $deposit->delete();
+        $order->recalcTotals();
         return response()->json([
             'success' => true,
-            'message' => 'Deposit removed successfully'
+            'message' => 'Deposit removed successfully',
+            'order' => $order
         ]);
     }
 
@@ -382,11 +397,13 @@ class OrderController extends Controller
         $item->quantity = $validated['qty'];
         $item->total = $item->price * $validated['qty'];
         $item->save();
+        $order->recalcTotals();
 
         return response()->json([
             'success' => true,
             'item' => $item,
-            'new_total' => $order->items()->sum('total'), // refresh order total
+            'new_total' => $order->items()->sum('total'),
+            'order' => $order
         ]);
     }
 

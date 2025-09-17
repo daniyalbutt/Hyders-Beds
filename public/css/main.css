@@ -157,3 +157,8 @@ ul.product-section.product-list li a {
     right: -7px;
     top: 12px;
 }
+
+ul.btn-table {
+    padding: 0;
+    list-style: none;
+}
