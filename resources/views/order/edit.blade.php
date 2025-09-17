@@ -581,9 +581,55 @@
 						$actionCell.append(checkbox);
 					}
 				});
+				if ($('#createLabelRow').length === 0) {
+					let createLabelRow = `
+						<tr id="createLabelRow">
+							<td colspan="6" class="text-right">
+								<button type="button" class="btn btn-success btn-xs" id="createLabelBtn">
+									Create Label
+								</button>
+							</td>
+						</tr>`;
+					$('#orderTable tfoot').append(createLabelRow);
+				}
 			} else {
 				$('#orderTable tbody .delivery-checkbox').remove();
+				$('#createLabelRow').remove();
 			}
+		});
+
+		$(document).on('click', '#createLabelBtn', function() {
+			let selectedItems = [];
+			$('#orderTable tbody .delivery-toggle:checked').each(function() {
+				let $row = $(this).closest('tr');
+				let itemId = $row.data('id'); // assuming each row has data-id (product_id or order_item_id)
+				let code = $row.data('code'); // product_code
+				selectedItems.push({ id: itemId, code: code });
+			});
+			if (selectedItems.length === 0) {
+				alert("Please select at least one item to create a label.");
+				return;
+			}
+			$.ajax({
+				url: "/orders/create-label",
+				method: "POST",
+				data: {
+					_token: $('meta[name="csrf-token"]').attr('content'),
+					items: selectedItems
+				},
+				xhrFields: {
+					responseType: 'blob'
+				},
+				success: function(response) {
+					let blob = new Blob([response], { type: 'application/pdf' });
+					let url = window.URL.createObjectURL(blob);
+					window.open(url, '_blank');
+				},
+				error: function(err) {
+					console.error(err);
+					alert("Something went wrong while generating the label.");
+				}
+			});
 		});
 
 		$(document).on('change', '.delivery-toggle', function() {

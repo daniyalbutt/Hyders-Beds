@@ -162,3 +162,19 @@ ul.btn-table {
     padding: 0;
     list-style: none;
 }
+
+.dashboard-small-chart-analytics i {
+    font-size: 40px;
+    color: #00365a;
+}
+
+.dashboard-small-chart-analytics .label {
+    font-size: 25px;
+    font-weight: bold;
+    margin-top: 8px;
+    color: #00365a;
+}
+
+.dashboard-small-chart-analytics {
+    text-align: center;
+}

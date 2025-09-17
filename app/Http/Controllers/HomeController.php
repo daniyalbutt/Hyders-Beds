@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use DB;
 
 class HomeController extends Controller
 {
@@ -23,6 +24,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $total_customer = DB::table('customers')->where('status', 0)->count();
+        $total_product = DB::table('products')->where('status', 0)->count();
+        $total_order = DB::table('orders')->where('status', 0)->count();
+        return view('home', compact('total_customer', 'total_product', 'total_order'));
     }
 }

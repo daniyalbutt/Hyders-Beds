@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Deposit;
 use Illuminate\Http\Request;
 use Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrderController extends Controller
 {
@@ -405,6 +406,18 @@ class OrderController extends Controller
             'new_total' => $order->items()->sum('total'),
             'order' => $order
         ]);
+    }
+
+    public function createLabel(Request $request)
+    {
+        $items = $request->input('items', []);
+        if (empty($items)) {
+            return response()->json(['error' => 'No items selected'], 400);
+        }
+        $selectedItems = Product::whereIn('id', array_column($items, 'id'))->get();
+        $pdf = Pdf::loadView('pdf.label', compact('selectedItems'))
+          ->setPaper([0, 0, 289.5, 430.5]);
+        return $pdf->stream('delivery-label.pdf');
     }
 
 

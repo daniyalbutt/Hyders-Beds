@@ -41,5 +41,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/deposit', [OrderController::class, 'addDeposit'])->name('orders.deposit');
     Route::delete('/orders/{order}/deposit/{deposit}', [OrderController::class, 'removeDeposit'])->name('orders.deposit.remove');
     Route::post('/orders/{order}/items/{item}/update-qty', [OrderController::class, 'updateQty'])->name('orders.items.updateQty');
+    Route::post('/orders/create-label', [OrderController::class, 'createLabel'])->name('orders.createLabel');
 
 });
