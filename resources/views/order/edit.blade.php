@@ -113,7 +113,7 @@
 								<div class="col-md-12">
 									<ul class="btn-table">
 										<li>
-											<button type="button" class="btn btn-primary btn-xs">Delivery Label</button>
+											<button type="button" class="btn btn-light btn-xs">Delivery Label</button>
 										</li>
 									</ul>
 									<table id="orderTable" class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
@@ -144,9 +144,11 @@
 												</td>
 												<td class="align-middle item-total">{{ number_format($item->total, 2) }}</td>
 												<td class="align-middle">
-													<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="{{ $item->id }}">
-														<i class="glyph-icon simple-icon-trash"></i>
-													</button>
+													<div class="d-flex">
+														<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="{{ $item->id }}">
+															<i class="glyph-icon simple-icon-trash"></i>
+														</button>
+													</div>
 												</td>
 											</tr>
 											@endforeach
@@ -560,6 +562,37 @@
 					}
 				}
 			});
+		});
+
+		$(document).on('click', '.btn-table .btn-light', function() {
+			let $btn = $(this);
+			$btn.toggleClass('active');
+
+			if ($btn.hasClass('active')) {
+				$('#orderTable tbody tr').each(function() {
+					let $actionCell = $(this).find('td:last .d-flex');
+					if ($actionCell.find('.delivery-checkbox').length === 0) {
+						let checkbox = `
+							<div class="input-group delivery-checkbox" style="max-width:50px;margin-left: 10px;">
+								<div class="input-group-text" style="padding: 0 8px;">
+									<input type="checkbox" class="delivery-toggle" aria-label="Delivery label toggle">
+								</div>
+							</div>`;
+						$actionCell.append(checkbox);
+					}
+				});
+			} else {
+				$('#orderTable tbody .delivery-checkbox').remove();
+			}
+		});
+
+		$(document).on('change', '.delivery-toggle', function() {
+			let row = $(this).closest('tr');
+			if ($(this).is(':checked')) {
+				row.addClass('table-success');
+			} else {
+				row.removeClass('table-success');
+			}
 		});
 
 	});
