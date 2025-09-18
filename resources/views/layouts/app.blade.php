@@ -99,9 +99,6 @@
                 <button class="btn btn-empty p-0" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span class="name">{{ Auth::user()->name }}</span> <span><img alt="Profile Picture" src="{{ asset('img/l-1.jpg') }}"></span></button>
                 <div class="dropdown-menu dropdown-menu-right mt-3">
                     <a class="dropdown-item" href="#">Account</a>
-                    <a class="dropdown-item" href="#">Features</a>
-                    <a class="dropdown-item" href="#">History</a>
-                    <a class="dropdown-item" href="#">Support</a>
                     <a class="dropdown-item" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" href="{{ route('logout') }}">Sign out</a>
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
                 </div>
