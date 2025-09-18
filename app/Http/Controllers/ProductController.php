@@ -22,7 +22,8 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Product::where('status', 0);
+
+        $query = Product::where('status', 0)->where('addon', 0);
 
         if ($request->product_code) {
             $query->where('product_code', 'LIKE', "%{$request->product_code}%");
