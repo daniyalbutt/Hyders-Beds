@@ -30,7 +30,6 @@ class ProductController extends Controller
 
         $products = $query
             ->orderBy('product_section')
-            ->orderBy('production_type')
             ->orderBy('product_range')
             ->orderBy('id', 'desc')
             ->get();
@@ -38,7 +37,6 @@ class ProductController extends Controller
         // Group by section → type → range
         $data = $products->groupBy([
             'product_section',
-            'production_type',
             'product_range',
         ]);
 
@@ -228,24 +226,23 @@ class ProductController extends Controller
             ->pluck('production_type');
     }
 
-    public function getRanges($section, $type)
+    public function getRanges($section)
     {
         return Product::where('status', 0)
             ->where('product_section', $section)
-            ->where('production_type', $type)
             ->select('product_range')
             ->distinct()
             ->orderBy('product_range')
             ->pluck('product_range');
     }
 
-    public function getProducts($section, $type, $range)
+    public function getProducts($section, $range)
     {
         return Product::where('status', 0)
             ->where('product_section', $section)
-            ->where('production_type', $type)
             ->where('product_range', $range)
-            ->orderBy('id')
+            ->orderBy('product_code')
             ->get();
     }
+
 }

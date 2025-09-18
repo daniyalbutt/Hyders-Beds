@@ -32,9 +32,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('products', ProductController::class);
     Route::get('product/import', [ProductController::class, 'import'])->name('product.import');
     Route::post('product/import/update', [ProductController::class, 'importProduct'])->name('product.update');
-    Route::get('/products/types/{section}', [ProductController::class, 'getProductionTypes']);
-    Route::get('/products/ranges/{section}/{type}', [ProductController::class, 'getRanges']);
-    Route::get('/products/list/{section}/{type}/{range}', [ProductController::class, 'getProducts']);
+    Route::get('/products/types/{section}', [ProductController::class, 'getProductionTypes'])->name('product.types');
+    Route::get('/products/ranges/{section}', [ProductController::class, 'getRanges'])->name('product.ranges');
+    Route::get('/products/list/{section}/{range}', [ProductController::class, 'getProducts'])->name('product.list');
     Route::resource('orders', OrderController::class);
     Route::post('/orders/{order}/items', [OrderController::class, 'addItem'])->name('orders.addItem');
     Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])->name('orders.removeItem');

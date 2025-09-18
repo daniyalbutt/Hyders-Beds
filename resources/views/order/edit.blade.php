@@ -315,13 +315,14 @@
 
 		$(document).on('click', '.section-btn', function(){
 			let section = $(this).data('section');
-			historyStack.push($('#drilldownContent').html()); // save current view
+			let url = "{{ route('product.ranges', ':section') }}".replace(':section', section);
+			historyStack.push($('#drilldownContent').html());
 			$('#backBtn').removeClass('d-none');
 			showLoader();
-			$.get('/products/types/' + section, function(data){
-				let html = '<h6>Production Types in <b>'+section+'</b></h6><ul class="product-section">';
-				data.forEach(function(type){
-					html += '<li><a class="btn btn-success type-btn" href="javascript:;" data-section="'+section+'" data-type="'+type+'">'+type+'</a></li>';
+			$.get(url, function(data) {
+				let html = '<h6>Ranges in <b>'+section+'</b></h6><ul class="product-section">';
+				data.forEach(function(range){
+					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-range="'+range+'">'+range+'</a></li>';
 				});
 				html += '</ul>';
 				$('#drilldownContent').html(html);
@@ -335,7 +336,11 @@
 			let type = $(this).data('type');
 			historyStack.push($('#drilldownContent').html());
 			showLoader();
-			$.get('/products/ranges/' + section + '/' + type, function(data){
+			let url = "{{ route('product.ranges', [':section', ':type']) }}"
+			.replace(':section', section)
+			.replace(':type', type);
+			
+			$.get(url, function(data){
 				let html = '<h6>Ranges in <b>'+type+'</b></h6><ul class="product-section">';
 				data.forEach(function(range){
 					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-type="'+type+'" data-range="'+range+'">'+range+'</a></li>';
@@ -349,11 +354,13 @@
 
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
-			let type = $(this).data('type');
 			let range = $(this).data('range');
 			historyStack.push($('#drilldownContent').html());
 			showLoader();
-			$.get('/products/list/' + section + '/' + type + '/' + range, function(data){
+			let url = "{{ route('product.list', [':section', ':range']) }}"
+				.replace(':section', section)
+				.replace(':range', range);
+			$.get(url, function(data){
 				let html = '<h6>Products in <b>'+range+'</b></h6><ul class="product-section product-list">';
 				data.forEach(function(p){
 					let codeHtml = p.product_code ? `<h6>${p.product_code}</h6>` : '';
@@ -407,7 +414,7 @@
 			let orderId = "{{ $data->id }}";
 
 			$.ajax({
-				url: '/orders/' + orderId + '/items',
+				url: "{{ route('orders.addItem', ':order') }}".replace(':order', orderId),
 				method: 'POST',
 				data: {
 					_token: '{{ csrf_token() }}',
@@ -437,7 +444,9 @@
 									<td class="align-middle item-qty">${item.quantity}</td>
 									<td class="align-middle item-total">${item.total.toFixed(2)}</td>
 									<td class="align-middle">
-										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="${item.id}"><i class="glyph-icon simple-icon-trash"></i></button>
+										<div class="d-flex">
+											<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="${item.id}"><i class="glyph-icon simple-icon-trash"></i></button>
+										</div>
 									</td>
 								</tr>
 							`);
@@ -457,7 +466,9 @@
 			let orderId = "{{ $data->id }}";
 
 			$.ajax({
-				url: '/orders/' + orderId + '/items/' + itemId,
+				url: "{{ route('orders.removeItem', [':order', ':item']) }}"
+				.replace(':order', orderId)
+				.replace(':item', itemId),
 				method: 'DELETE',
 				data: { _token: '{{ csrf_token() }}' },
 				success: function() {
@@ -482,7 +493,7 @@
 			let orderId = "{{ $data->id }}";
 
 			$.ajax({
-				url: '/orders/' + orderId + '/deposit',
+				url: "{{ route('orders.deposit', ':order') }}".replace(':order', orderId),
 				method: 'POST',
 				data: $(this).serialize(),
 				success: function(response){
@@ -540,7 +551,9 @@
 			let productId = $('#modalProductId').val();
 			let newQty = parseInt($('#modalQty').val());
 			$.ajax({
-				url: '/orders/' + orderId + '/items/' + itemId + '/update-qty',
+				url: "{{ route('orders.items.updateQty', [':order', ':item']) }}"
+				.replace(':order', orderId)
+				.replace(':item', itemId),
 				method: 'POST',
 				data: {
 					_token: '{{ csrf_token() }}',
@@ -611,7 +624,7 @@
 				return;
 			}
 			$.ajax({
-				url: "/orders/create-label",
+				url: "{{ route('orders.createLabel') }}",
 				method: "POST",
 				data: {
 					_token: $('meta[name="csrf-token"]').attr('content'),
@@ -651,7 +664,9 @@
 		if(!confirm("Are you sure you want to remove this deposit?")) return;
 
 		$.ajax({
-			url: '/orders/' + orderId + '/deposit/' + depositId,
+			url: "{{ route('orders.deposit.remove', ['order' => ':order', 'deposit' => ':deposit']) }}"
+			.replace(':order', orderId)
+			.replace(':deposit', depositId),
 			method: 'DELETE',
 			data: { _token: '{{ csrf_token() }}' },
 			success: function(response){

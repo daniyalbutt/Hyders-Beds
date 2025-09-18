@@ -48,7 +48,7 @@
             <div class="col-lg-2">
                 <div class="nav flex-column nav-pills" id="section-tab" role="tablist">
                     @php $firstSection = true; @endphp
-                    @foreach($data as $section => $types)
+                    @foreach($data as $section => $ranges)
                         <a class="nav-link {{ $firstSection ? 'active' : '' }}"
                         id="section-{{ Str::slug($section) }}-tab"
                         data-toggle="pill"
@@ -64,91 +64,57 @@
             <div class="col-lg-10">
                 <div class="tab-content" id="section-tabContent">
                     @php $firstSection = true; @endphp
-                    @foreach($data as $section => $types)
+                    @foreach($data as $section => $ranges)
                         <div class="tab-pane fade {{ $firstSection ? 'show active' : '' }}"
                             id="section-{{ Str::slug($section) }}"
                             role="tabpanel">
 
                             <div class="row">
-                                {{-- Production Types --}}
                                 <div class="col-lg-3">
-                                    <div class="nav flex-column nav-pills" id="type-tab-{{ Str::slug($section) }}" role="tablist">
-                                        @php $firstType = true; @endphp
-                                        @foreach($types as $type => $ranges)
-                                            <a class="nav-link {{ $firstType ? 'active' : '' }}"
-                                            id="type-{{ Str::slug($section.'-'.$type) }}-tab"
+                                    <div class="nav flex-column nav-pills" id="range-tab-{{ Str::slug($section) }}" role="tablist">
+                                        @php $firstRange = true; @endphp
+                                        @foreach($ranges as $range => $products)
+                                            <a class="nav-link {{ $firstRange ? 'active' : '' }}"
+                                            id="range-{{ Str::slug($section.'-'.$range) }}-tab"
                                             data-toggle="pill"
-                                            href="#type-{{ Str::slug($section.'-'.$type) }}"
+                                            href="#range-{{ Str::slug($section.'-'.$range) }}"
                                             role="tab">
-                                            {{ $type }}
+                                            {{ $range }}
                                             </a>
-                                            @php $firstType = false; @endphp
+                                            @php $firstRange = false; @endphp
                                         @endforeach
                                     </div>
                                 </div>
 
                                 <div class="col-lg-9">
-                                    <div class="tab-content" id="type-tabContent-{{ Str::slug($section) }}">
-                                        @php $firstType = true; @endphp
-                                        @foreach($types as $type => $ranges)
-                                            <div class="tab-pane fade {{ $firstType ? 'show active' : '' }}"
-                                                id="type-{{ Str::slug($section.'-'.$type) }}"
+                                    <div class="tab-content" id="range-tabContent-{{ Str::slug($section) }}">
+                                        @php $firstRange = true; @endphp
+                                        @foreach($ranges as $range => $products)
+                                            <div class="tab-pane fade {{ $firstRange ? 'show active' : '' }}"
+                                                id="range-{{ Str::slug($section.'-'.$range) }}"
                                                 role="tabpanel">
 
-                                                {{-- Ranges --}}
-                                                <div class="row">
-                                                    <div class="col-lg-4">
-                                                        <div class="nav flex-column nav-pills" id="range-tab-{{ Str::slug($section.'-'.$type) }}" role="tablist">
-                                                            @php $firstRange = true; @endphp
-                                                            @foreach($ranges as $range => $products)
-                                                                <a class="nav-link {{ $firstRange ? 'active' : '' }}"
-                                                                id="range-{{ Str::slug($section.'-'.$type.'-'.$range) }}-tab"
-                                                                data-toggle="pill"
-                                                                href="#range-{{ Str::slug($section.'-'.$type.'-'.$range) }}"
-                                                                role="tab">
-                                                                {{ $range }}
-                                                                </a>
-                                                                @php $firstRange = false; @endphp
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="col-lg-8">
-                                                        <div class="tab-content" id="range-tabContent-{{ Str::slug($section.'-'.$type) }}">
-                                                            @php $firstRange = true; @endphp
-                                                            @foreach($ranges as $range => $products)
-                                                                <div class="tab-pane fade {{ $firstRange ? 'show active' : '' }}"
-                                                                    id="range-{{ Str::slug($section.'-'.$type.'-'.$range) }}"
-                                                                    role="tabpanel">
-
-                                                                    <table class="table table-stripped responsive nowrap">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th>Code</th>
-                                                                                <th>Description</th>
-                                                                                <th>Price</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach($products as $product)
-                                                                                <tr>
-                                                                                    <td>{{ $product->product_code }}</td>
-                                                                                    <td>{{ $product->description }}</td>
-                                                                                    <td>{{ $product->sale_price }}</td>
-                                                                                </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                    </table>
-
-                                                                </div>
-                                                                @php $firstRange = false; @endphp
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                <table class="table table-stripped responsive nowrap">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Code</th>
+                                                            <th>Description</th>
+                                                            <th>Price</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($products as $product)
+                                                            <tr>
+                                                                <td>{{ $product->product_code }}</td>
+                                                                <td>{{ $product->description }}</td>
+                                                                <td>{{ $product->sale_price }}</td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
 
                                             </div>
-                                            @php $firstType = false; @endphp
+                                            @php $firstRange = false; @endphp
                                         @endforeach
                                     </div>
                                 </div>
@@ -160,6 +126,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 @endsection
