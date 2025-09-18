@@ -20,6 +20,12 @@ class OrderItem extends Model
         'total',
     ];
 
+    protected $casts = [
+        'price'    => 'float',
+        'total'    => 'float',
+        'quantity' => 'integer',
+    ];
+
     public function order(){
         return $this->belongsTo(Order::class);
     }

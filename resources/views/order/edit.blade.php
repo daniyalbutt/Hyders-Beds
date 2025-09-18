@@ -131,8 +131,12 @@
 											@foreach($data->items as $item)
 											<tr data-code="{{ $item->product_code }}" data-id="{{ $item->product_id }}">
 												<td class="align-middle">{{ $item->product_code }}</td>
-												<td class="align-middle">{{ $item->description }}</td>
-												<td class="align-middle">{{ number_format($item->price, 2) }}</td>
+												<td class="align-middle item-desc" contenteditable="true" data-id="{{ $item->id }}">
+													{{ $item->description }}
+												</td>
+												<td class="align-middle item-price" contenteditable="true" data-id="{{ $item->id }}">
+													{{ number_format($item->price, 2) }}
+												</td>
 												<td class="align-middle item-qty">
 													<span class="qty-text">{{ $item->quantity }}</span>
 													<button type="button" class="btn btn-xs btn-link text-primary edit-qty" 
@@ -653,6 +657,68 @@
 				row.removeClass('table-success');
 			}
 		});
+
+		$(document).on('blur', '.item-desc', function () {
+			let itemId = $(this).data('id');
+			let newDesc = $(this).text().trim(); // get edited text
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: "{{ route('orders.updateItemDesc', ['order' => $data->id, 'item' => 'ITEM_ID']) }}"
+					.replace('ITEM_ID', itemId),
+				method: 'PUT',
+				data: {
+					_token: '{{ csrf_token() }}',
+					description: newDesc
+				},
+				success: function (response) {
+					
+				},
+				error: function () {
+					toastr.error("Error while updating description.");
+				}
+			});
+		});
+
+		$(document).on('blur', '.item-price', function () {
+			let itemId = $(this).data('id');
+			let newPrice = parseFloat($(this).text().trim()) || 0;
+			let orderId = "{{ $data->id }}";
+			let $row = $(this).closest('tr');
+
+			$.ajax({
+				url: "{{ route('orders.updateItemPrice', ['order' => $data->id, 'item' => 'ITEM_ID']) }}"
+					.replace('ITEM_ID', itemId),
+				method: 'PUT',
+				data: {
+					_token: '{{ csrf_token() }}',
+					price: newPrice
+				},
+				success: function (response) {
+					if (response.success) {
+						let item = response.item;
+						let price = parseFloat(item.price) || 0;
+						let total = parseFloat(item.total) || 0;
+						$row.find('.item-price').text(price.toFixed(2));
+						$row.find('.item-total').text(total.toFixed(2));
+						$row.addClass('table-warning');
+						setTimeout(() => $row.removeClass('table-warning'), 800);
+						updateTotals();
+					}
+				},
+				error: function () {
+					alert("Error while updating price.");
+				}
+			});
+		});
+
+		$(document).on('keypress', '.item-desc, .item-price', function (e) {
+			if (e.which === 13) {
+				e.preventDefault();
+				$(this).blur();
+			}
+		});
+
 
 	});
 

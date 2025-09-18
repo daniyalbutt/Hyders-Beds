@@ -80,7 +80,7 @@ class OrderController extends Controller
             return redirect()->route('orders.index');
         }
         $salesPersons = User::role('Sales Person')->get();
-        $products = Product::where('status', 0)
+        $products = Product::where('status', 0)->where('addon', 0)
             ->selectRaw('MIN(id) as id, product_section')
             ->groupBy('product_section')
             ->orderBy('product_section', 'asc') // or 'desc'
@@ -419,6 +419,52 @@ class OrderController extends Controller
           ->setPaper([0, 0, 289.5, 430.5]);
         return $pdf->stream('delivery-label.pdf');
     }
+
+    public function updateItemDescription(Request $request, $orderId, $itemId)
+    {
+        $request->validate([
+            'description' => 'required|string|max:255',
+        ]);
+        $item = OrderItem::where('order_id', $orderId)
+                        ->where('id', $itemId)
+                        ->firstOrFail();
+        $item->description = $request->description;
+        $item->save();
+        return response()->json(['success' => true, 'item' => $item]);
+    }
+
+    public function updateItemPrice(Request $request, $orderId, $itemId)
+    {
+        $request->validate([
+            'price' => 'required|numeric|min:0',
+        ]);
+
+        $item = OrderItem::where('order_id', $orderId)
+            ->where('id', $itemId)
+            ->firstOrFail();
+
+        $item->price = $request->price;
+        $item->total = $item->price * $item->quantity;
+        $item->save();
+
+        if (method_exists($item->order, 'recalcTotals')) {
+            $item->order->recalcTotals();
+        }
+
+        return response()->json([
+            'success' => true,
+            'item' => [
+                'id'         => (int) $item->id,
+                'product_id' => (int) $item->product_id,
+                'price'      => (float) $item->price,
+                'quantity'   => (int) $item->quantity,
+                'total'      => (float) $item->total,
+            ],
+        ]);
+    }
+
+
+
 
 
 }
