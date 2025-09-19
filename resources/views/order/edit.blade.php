@@ -69,7 +69,11 @@
 		<div class="col-lg-4">
 			<div class="card mt-4">
 				<div class="card-body">
-					<h5 class="card-title mb-3">Sections</h5>
+					<div class="d-flex justify-content-between">
+						<h5 class="card-title mb-3" id="dynamic-heading">Sections</h5>
+						<input type="text" class="form-control search-global" placeholder="Search Sections">
+					</div>
+
 					<button id="backBtn" type="button" class="btn btn-sm btn-secondary mb-3 d-none">← Back</button>
 					<div class="basic-form">
 						<div class="box-body">
@@ -320,16 +324,24 @@
 		$(document).on('click', '.section-btn', function(){
 			let section = $(this).data('section');
 			let url = "{{ route('product.ranges', ':section') }}".replace(':section', section);
-			historyStack.push($('#drilldownContent').html());
+			historyStack.push({
+				html: $('#drilldownContent').html(),
+				heading: $('#dynamic-heading').text(),
+				placeholder: $('.search-global').attr('Search Ranges')
+			});
 			$('#backBtn').removeClass('d-none');
 			showLoader();
 			$.get(url, function(data) {
 				let html = '<h6>Ranges in <b>'+section+'</b></h6><ul class="product-section">';
 				data.forEach(function(range){
-					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-range="'+range+'">'+range+'</a></li>';
+					console.log(range);
+					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-range="'+encodeURIComponent(range)+'">'+range+'</a></li>';
 				});
 				html += '</ul>';
 				$('#drilldownContent').html(html);
+				$('#dynamic-heading').text('Ranges');
+        		$('.search-global').attr('placeholder', 'Search Ranges');
+				$('.search-global').val('');
 			}).always(function(){
 				hideLoader();
 			});
@@ -358,8 +370,12 @@
 
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
-			let range = $(this).data('range');
-			historyStack.push($('#drilldownContent').html());
+			let range   = decodeURIComponent($(this).data('range'));
+			historyStack.push({
+				html: $('#drilldownContent').html(),
+				heading: $('#dynamic-heading').text(),
+				placeholder: $('.search-global').attr('placeholder')
+			});
 			showLoader();
 			let url = "{{ route('product.list', [':section', ':range']) }}"
 				.replace(':section', section)
@@ -391,17 +407,24 @@
 				});
 				html += '</ul>';
 				$('#drilldownContent').html(html);
+				$('#dynamic-heading').text('Products');
+        		$('.search-global').attr('placeholder', 'Search Products');
+				$('.search-global').val('');
 			}).always(function(){
 				hideLoader();
 			});
 		});
 
 		$('#backBtn').on('click', function(){
+			$('.search-global').val('');
 			if(historyStack.length > 0){
-				$('#drilldownContent').html(historyStack.pop());
+				let prev = historyStack.pop();
+				$('#drilldownContent').html(prev.html);
+				$('#dynamic-heading').text(prev.heading);
+				$('.search-global').attr('placeholder', prev.placeholder);
 			}
 			if(historyStack.length === 0){
-				$('#backBtn').addClass('d-none'); // hide if at top level
+				$('#backBtn').addClass('d-none');
 			}
 		});
 
@@ -743,6 +766,15 @@
 					});
 				}
 			}
+		});
+	});
+
+	$(document).on('keyup', '.search-global', function(){
+		let value = $(this).val().toLowerCase();
+		$('.product-section li').filter(function(){
+			$(this).toggle(
+				$(this).text().toLowerCase().indexOf(value) > -1
+			);
 		});
 	});
 

@@ -178,3 +178,10 @@ ul.btn-table {
 .dashboard-small-chart-analytics {
     text-align: center;
 }
+
+.search-global {
+    padding: 7px 10px;
+    width: 56%;
+    height: 27px;
+    border-color: #ececec;
+}
