@@ -185,3 +185,57 @@ ul.btn-table {
     height: 27px;
     border-color: #ececec;
 }
+
+ul.product-section.fabric-list, ul.product-section.drawer-list {
+    height: 200px;
+    overflow-y: scroll;
+    border: 2px solid #e5e5e5;
+    padding: 8px;
+}
+
+ul.product-section.fabric-list li, ul.product-section.drawer-list li {
+    width: 48%;
+}
+
+ul.product-section.fabric-list li span, ul.product-section.drawer-list li span{
+    display: block;
+}
+
+.drill-wrapper .heading {
+    font-size: 15px;
+    padding: 10px 15px;
+}
+
+.fabric-btn, .drawer-btn {
+    position: relative;
+}
+
+.fabric-btn.active:before {
+    position: absolute;
+    background-color: #3e884f;
+    right: 10px;
+    bottom: 6px;
+    content: "✔";
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50px;
+    line-height: 22px;
+}
+
+.drawer-btn.active:before {
+    position: absolute;
+    background-color: #3e884f;
+    right: 10px;
+    bottom: 6px;
+    content: "✔";
+    display: block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50px;
+    line-height: 22px;
+}
+
+.selected-drawer-info {
+    margin-top: 16px;
+}

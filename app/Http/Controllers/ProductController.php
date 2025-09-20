@@ -246,4 +246,24 @@ class ProductController extends Controller
             ->get();
     }
 
+    public function getFabrics($section, $range, $productId)
+    {
+        $fabrics = Product::where('status', 0)
+            ->where('production_type', 'Fabric')
+            ->select('description', 'sale_price', 'product_section')
+            ->get();
+
+        return response()->json($fabrics);
+    }
+
+    public function getDrawers($section, $range, $productId)
+    {
+        $drawers = Product::where('status', 0)
+            ->where('production_type', 'Drawer')
+            ->select('description', 'id', 'product_section', 'sale_price')
+            ->get();
+
+        return response()->json($drawers);
+    }
+
 }

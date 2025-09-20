@@ -44,4 +44,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/create-label', [OrderController::class, 'createLabel'])->name('orders.createLabel');
     Route::put('/orders/{order}/items/{item}/description', [OrderController::class, 'updateItemDescription'])->name('orders.updateItemDesc');
     Route::put('/orders/{order}/items/{item}/price', [OrderController::class, 'updateItemPrice'])->name('orders.updateItemPrice');
+    Route::get('/products/fabrics/{section}/{range}/{product}', [ProductController::class, 'getFabrics'])->name('product.fabrics');
+    Route::get('/products/{section}/{range}/{product}/drawers', [ProductController::class, 'getDrawers'])->name('product.drawers');
+    Route::post('/orders/{order}/items/fabric', [OrderController::class, 'addItemWithFabric'])->name('orders.addItemFabric');
 });

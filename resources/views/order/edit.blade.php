@@ -73,7 +73,13 @@
 						<h5 class="card-title mb-3" id="dynamic-heading">Sections</h5>
 						<input type="text" class="form-control search-global" placeholder="Search Sections">
 					</div>
-
+					<div id="breadcrumb" class="mb-2">
+						<nav aria-label="breadcrumb">
+							<ol class="breadcrumb">
+								<li class="breadcrumb-item">Home</li>
+							</ol>
+						</nav>
+					</div>
 					<button id="backBtn" type="button" class="btn btn-sm btn-secondary mb-3 d-none">← Back</button>
 					<div class="basic-form">
 						<div class="box-body">
@@ -323,6 +329,7 @@
 
 		$(document).on('click', '.section-btn', function(){
 			let section = $(this).data('section');
+			updateBreadcrumb([section]);
 			let url = "{{ route('product.ranges', ':section') }}".replace(':section', section);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
@@ -334,7 +341,6 @@
 			$.get(url, function(data) {
 				let html = '<h6>Ranges in <b>'+section+'</b></h6><ul class="product-section">';
 				data.forEach(function(range){
-					console.log(range);
 					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-range="'+encodeURIComponent(range)+'">'+range+'</a></li>';
 				});
 				html += '</ul>';
@@ -371,6 +377,7 @@
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
 			let range   = decodeURIComponent($(this).data('range'));
+			updateBreadcrumb([section, range]);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),
@@ -388,7 +395,7 @@
 					let priceHtml = p.sale_price ? `<h5>${p.sale_price}</h5>` : '';
 					html += `
 					<li>
-						<a href="javascript:;" class="btn btn-info product-btn">
+						<a href="javascript:;" class="btn btn-info product-btn" data-range="${p.product_range}" data-section="${p.product_section}" data-production="${p.production_type}">
 							${codeHtml}
 							${descHtml}
 							${priceHtml}
@@ -428,8 +435,172 @@
 			}
 		});
 
+		const fabricRanges = ["base", "bed frame", "headboard", "headboard design", "ottoman"];
+		let cachedProduct = null;
+
 		$(document).on('click', '.product-btn', function(){
-			$(this).find('.quantity-form').toggleClass('d-none');
+			let section = $(this).data('section');
+			let range   = decodeURIComponent($(this).data('range')).toLowerCase();
+			let productId = $(this).find('.add-to-order').data('product');
+			// let product = $(this).data('id');
+			let production = ($(this).data('production') || "").toLowerCase();
+			let desc = $(this).find('.add-to-order').data('desc');
+    		let code = $(this).find('.add-to-order').data('code');
+			updateBreadcrumb([section, range, desc]);
+			let productTitle = `${code} - ${desc}`;
+			let headerHtml = `
+				<div class="selected-product">
+					<div class="text-success alert alert-success heading"><b>${productTitle}</b></div>
+				</div>
+			`;
+			if (fabricRanges.includes(production)) {
+				cachedProduct = {
+					productId: productId,
+					code: $(this).find('.add-to-order').data('code'),
+					desc: $(this).find('.add-to-order').data('desc'),
+					price: $(this).find('.add-to-order').data('price')
+				};
+				$('.drill-wrapper').prepend(headerHtml);
+				loadFabrics(section, range, productId, production);
+			} else {
+				$(this).find('.quantity-form').removeClass('d-none');
+			}
+		});
+
+
+		$(document).on('click', '.fabric-btn', function () {
+			let $btn   = $(this);
+			let fabric = decodeURIComponent($btn.data('fabric'));
+			let price  = parseFloat($btn.data('price')) || 0;
+			let fabricList = $btn.closest('.fabric-list');
+			if ($btn.hasClass('active')) {
+				$btn.removeClass('active');
+				if (cachedProduct) {
+					delete cachedProduct.fabric;
+					delete cachedProduct.fabricPrice;
+				}
+				$('.selected-fabric-info').remove();
+				let placeholder = `
+					<div class="selected-fabric-info">
+						<div class="alert alert-info text-info mb-0 heading">
+							<b>Select Fabric</b>
+						</div>
+					</div>
+				`;
+				$('.selected-product .heading').after(placeholder);
+				fabricList.show();
+				$('.fabric-qty-form').remove();
+				return;
+			}
+			$('.fabric-btn').removeClass('active');
+			$btn.addClass('active');
+			if (cachedProduct) {
+				cachedProduct.fabric = fabric;
+				cachedProduct.fabricPrice = price;
+			}
+			let fabricInfo = `
+				<div class="selected-fabric-info">
+					<div class="alert alert-success text-success mb-0 heading">
+						<b>Selected Fabric<br>${fabric}<br>${price.toFixed(2)}</b>
+					</div>
+				</div>
+			`;
+			$('.selected-fabric-info').remove();
+			$('.selected-product .heading').after(fabricInfo);
+			fabricList.hide();
+			let qtyHtml = `
+				<div class="fabric-qty-form mt-3">
+					<input type="number" class="form-control form-control-sm fabric-qty mb-2" value="1" min="1">
+					<button type="button" class="btn btn-sm btn-success add-fabric-to-order">
+						Add to Order
+					</button>
+				</div>
+			`;
+			$('.fabric-qty-form').remove();
+			$('#drilldownContent').after(qtyHtml);
+		});
+
+
+		$(document).on('click', '.drawer-btn', function () {
+			let $btn   = $(this);
+			let drawer = decodeURIComponent($btn.data('drawer'));
+			let price  = parseFloat($btn.data('price')) || 0;
+			let drawerList = $btn.closest('.drawer-list');
+
+			if ($btn.hasClass('active')) {
+				$btn.removeClass('active');
+				if (cachedProduct) {
+					delete cachedProduct.drawer;
+					delete cachedProduct.drawerPrice;
+				}
+				$('.selected-drawer-info').remove();
+				let placeholder = `
+					<div class="selected-drawer-info">
+						<div class="alert alert-info text-info mb-0 heading">
+							<b>Select Drawers</b>
+						</div>
+					</div>
+				`;
+				drawerList.before(placeholder);
+				drawerList.show();
+				return;
+			}
+			$('.drawer-btn').removeClass('active');
+			$btn.addClass('active');
+			if (cachedProduct) {
+				cachedProduct.drawer = drawer;
+				cachedProduct.drawerPrice = price;
+			}
+			let drawerInfo = `
+				<div class="selected-drawer-info">
+					<div class="alert alert-success text-success mb-0 heading">
+						<b>Selected Drawer<br>${drawer}<br>${price.toFixed(2)}</b>
+					</div>
+				</div>
+			`;
+			$('.selected-drawer-info').remove();
+			drawerList.before(drawerInfo);
+			drawerList.hide();
+		});
+
+
+
+		$(document).on('click', '.selected-fabric-info', function () {
+			$('.fabric-list').toggle();
+		});
+
+		$(document).on('click', '.selected-drawer-info', function () {
+			$('.drawer-list').toggle();
+		});
+
+		$(document).on('click', '.add-fabric-to-order', function () {
+			let fabric = $(this).data('fabric');
+			let qty = parseInt($(this).closest('.fabric-qty-form').find('.fabric-qty').val()) || 1;
+			let orderId = "{{ $data->id }}";
+
+			if (!cachedProduct) {
+				alert("No product cached.");
+				return;
+			}
+
+			$.ajax({
+				url: "{{ route('orders.addItemFabric', ['order' => $data->id]) }}",
+				method: "POST",
+				data: {
+					_token: $('meta[name="csrf-token"]').attr('content'),
+					product: cachedProduct.productId,
+					code: cachedProduct.code,
+					description: cachedProduct.desc,
+					price: cachedProduct.price,
+					qty: qty,
+					fabric: fabric
+				},
+				success: function (res) {
+					alert("Added " + cachedProduct.desc + " with fabric " + fabric);
+					cachedProduct = null; // clear cache
+					// Optionally reload order table here
+				}
+			});
 		});
 
 		$(document).on('click', '.add-to-order', function(){
@@ -439,7 +610,6 @@
 			let price = parseFloat($(this).data('price'));
 			let qty = parseInt($(this).closest('.quantity-form').find('.qty-input').val()) || 1;
 			let orderId = "{{ $data->id }}";
-
 			$.ajax({
 				url: "{{ route('orders.addItem', ':order') }}".replace(':order', orderId),
 				method: 'POST',
@@ -742,6 +912,90 @@
 			}
 		});
 
+		function loadFabrics(section, range, productId, production) {
+			showLoader();
+			let url = "{{ route('product.fabrics', [':section', ':range', ':product']) }}"
+				.replace(':section', encodeURIComponent(section))
+				.replace(':range', encodeURIComponent(range))
+				.replace(':product', productId);
+
+			$.get(url, function (data) {
+				let html = `
+					<div class="selected-fabric-info"><div class="alert alert-info text-info mb-0 heading"><b>Select Fabric</b></div></div>
+					<ul class="product-section fabric-list" style="display:none;">
+				`;
+
+				data.forEach(function (fabric) {
+					let fabricLabel = $('<div>').text(fabric.description).html(); // escape HTML safely
+					let price = fabric.sale_price ? parseFloat(fabric.sale_price).toFixed(2) : '0.00';
+					html += `
+						<li>
+							<div class="fabric-option">
+								<a class="btn btn-info fabric-btn" href="javascript:;"
+								data-section="${section}"
+								data-range="${range}"
+								data-product="${productId}"
+								data-fabric="${encodeURIComponent(fabric.description)}"
+								data-price="${price}"
+								data-category="${fabric.product_section}">
+									${fabricLabel} <br>
+									<small>${fabric.product_section}</small>
+									<span>${price}</span>
+								</a>
+							</div>
+						</li>
+					`;
+				});
+
+				html += '</ul>';
+				if (production === "base") {
+					loadDrawers(section, range, productId, html);
+				} else {
+					$('#drilldownContent').html(html);
+				}
+
+				// $('#drilldownContent').html(html);
+				// $('#dynamic-heading').text('Fabrics');
+				// $('.search-global').attr('placeholder', 'Search Fabrics').val('');
+			})
+			.fail(function () {
+				$('#drilldownContent').html('<p class="text-danger">Failed to load fabrics.</p>');
+			})
+			.always(function () {
+				hideLoader();
+			});
+		}
+
+		function loadDrawers(section, range, productId, existingHtml = '') {
+			let url = "{{ route('product.drawers', [':section', ':range', ':product']) }}"
+				.replace(':section', section)
+				.replace(':range', range)
+				.replace(':product', productId);
+
+			$.get(url, function(drawers){
+				let productTitle = cachedProduct ? `${cachedProduct.code} - ${cachedProduct.desc}` : '';
+				let html = existingHtml;
+				html += `<div class="selected-drawer-info"><div class="alert alert-info text-info mb-0 heading"><b>Select Drawers</b></div></div>
+				<ul class="product-section drawer-list" style="display:none">`;
+				drawers.forEach(function (drawer) {
+					let price = drawer.sale_price ? parseFloat(drawer.sale_price).toFixed(2) : '0.00';
+					html += `
+						<li>
+							<a class="btn btn-info drawer-btn" href="javascript:;"
+							data-product="${drawer.id}"
+							data-drawer="${encodeURIComponent(drawer.description)}">
+							${drawer.description}<br>
+							<small>${drawer.product_section}</small>
+							<span>${price}</span>
+							</a>
+						</li>`;
+				});
+				html += '</ul>';
+
+				$('#drilldownContent').html(html);
+			});
+		}
+
 
 	});
 
@@ -801,6 +1055,18 @@
 			minimumFractionDigits: 2,
 			maximumFractionDigits: 2
 		});
+	}
+
+	function updateBreadcrumb(parts) {
+		let html = '';
+		parts.forEach((part, i) => {
+			if (i === parts.length - 1) {
+				html += `<li class="breadcrumb-item active" aria-current="page">${part}</li>`;
+			} else {
+				html += `<li class="breadcrumb-item">${part}</li>`;
+			}
+		});
+		$('#breadcrumb .breadcrumb').html(html);
 	}
 
 </script>
