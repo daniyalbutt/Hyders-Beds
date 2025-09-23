@@ -239,3 +239,16 @@ ul.product-section.fabric-list li span, ul.product-section.drawer-list li span{
 .selected-drawer-info {
     margin-top: 16px;
 }
+
+.fabric-row td, .drawer-row td{
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.child-row{
+    display: none;
+}
+
+.has-children-row {
+    background-color: #f8f9fa;
+}

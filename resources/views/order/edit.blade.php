@@ -129,7 +129,7 @@
 									<table id="orderTable" class="table table-stripped responsive nowrap" data-order="[[ 1, &quot;desc&quot; ]]">
 										<thead>
 											<tr>
-												<th>Code</th>
+												<th colspan="2">Code</th>
 												<th>Description</th>
 												<th>Price</th>
 												<th>QTY</th>
@@ -139,7 +139,16 @@
 										</thead>
 										<tbody>
 											@foreach($data->items as $item)
-											<tr data-code="{{ $item->product_code }}" data-id="{{ $item->product_id }}">
+											<tr data-code="{{ $item->product_code }}"
+												data-id="{{ $item->product_id }}"
+												class="@if($item->fabric_name || $item->drawer_name) has-children-row @endif">
+												<td class="align-middle pr-0">
+													@if($item->fabric_name || $item->drawer_name)
+													<button type="button" class="btn btn-xs btn-link text-primary toggle-children p-0" data-id="{{ $item->id }}">
+														<i class="glyph-icon simple-icon-arrow-down"></i>
+													</button>
+													@endif
+												</td>
 												<td class="align-middle">{{ $item->product_code }}</td>
 												<td class="align-middle item-desc" contenteditable="true" data-id="{{ $item->id }}">
 													{{ $item->description }}
@@ -165,6 +174,42 @@
 													</div>
 												</td>
 											</tr>
+											@if($item->fabric_name)
+											<tr class="fabric-row child-row" data-parent="{{ $item->id }}">
+												<td class="align-middle" colspan="2"></td>
+												<td class="align-middle text-right">{{ $item->fabric_name }}</td>
+												<td class="align-middle">
+													{{ number_format($item->fabric_price, 2) }}
+												</td>
+												<td class="align-middle">—</td>
+												<td class="align-middle">—</td>
+												<td class="align-middle">
+													<div class="d-flex">
+														<button type="button" class="btn btn-danger shadow btn-xs sharp remove-fabric" data-id="{{ $item->id }}">
+															<i class="glyph-icon simple-icon-trash"></i>
+														</button>
+													</div>
+												</td>
+											</tr>
+											@endif
+											@if($item->drawer_name)
+											<tr class="drawer-row child-row" data-parent="{{ $item->id }}">
+												<td class="align-middle" colspan="2"></td>
+												<td class="align-middle text-right">{{ $item->drawer_name }}</td>
+												<td class="align-middle">
+													{{ number_format($item->drawer_price, 2) }}
+												</td>
+												<td class="align-middle">—</td>
+												<td class="align-middle">—</td>
+												<td class="align-middle">
+													<div class="d-flex">
+														<button type="button" class="btn btn-danger shadow btn-xs sharp remove-drawer" data-id="{{ $item->id }}">
+															<i class="glyph-icon simple-icon-trash"></i>
+														</button>
+													</div>
+												</td>
+											</tr>
+											@endif
 											@endforeach
 										</tbody>
 										<tfoot>
@@ -583,22 +628,34 @@
 				return;
 			}
 
+			let basePrice   = parseFloat(cachedProduct.price) || 0;
+			let fabricPrice = parseFloat(cachedProduct.fabricPrice) || 0;
+			let drawerPrice = parseFloat(cachedProduct.drawerPrice) || 0;
+			let unitPrice   = basePrice + fabricPrice + drawerPrice;
+			let totalPrice  = unitPrice * qty;
+
 			$.ajax({
 				url: "{{ route('orders.addItemFabric', ['order' => $data->id]) }}",
 				method: "POST",
 				data: {
 					_token: $('meta[name="csrf-token"]').attr('content'),
-					product: cachedProduct.productId,
-					code: cachedProduct.code,
+					product_id: cachedProduct.productId,
+					order_id: orderId,
+					product_code: cachedProduct.code,
 					description: cachedProduct.desc,
-					price: cachedProduct.price,
-					qty: qty,
-					fabric: fabric
+					price: basePrice,
+					quantity: qty,
+					total: totalPrice,
+					fabric_name: cachedProduct.fabric || null,
+					fabric_price: fabricPrice,
+					drawer_name: cachedProduct.drawer || null,
+					drawer_price: drawerPrice
 				},
 				success: function (res) {
-					alert("Added " + cachedProduct.desc + " with fabric " + fabric);
-					cachedProduct = null; // clear cache
-					// Optionally reload order table here
+					alert("✅ Added " + cachedProduct.desc + 
+					(cachedProduct.fabric ? " with fabric: " + cachedProduct.fabric : "") + 
+					(cachedProduct.drawer ? " and drawer: " + cachedProduct.drawer : ""));
+					cachedProduct = null;
 				}
 			});
 		});
@@ -982,6 +1039,7 @@
 					html += `
 						<li>
 							<a class="btn btn-info drawer-btn" href="javascript:;"
+							data-price="${price}"
 							data-product="${drawer.id}"
 							data-drawer="${encodeURIComponent(drawer.description)}">
 							${drawer.description}<br>
@@ -1068,6 +1126,21 @@
 		});
 		$('#breadcrumb .breadcrumb').html(html);
 	}
+
+	$(document).on('click', '.toggle-children', function () {
+		let parentId = $(this).data('id');
+		let $icon = $(this).find('i');
+
+		// Slide toggle child rows
+		$(`.child-row[data-parent="${parentId}"]`).slideToggle('fast');
+
+		// Toggle icon direction
+		if ($icon.hasClass('simple-icon-arrow-down')) {
+			$icon.removeClass('simple-icon-arrow-down').addClass('simple-icon-arrow-up');
+		} else {
+			$icon.removeClass('simple-icon-arrow-up').addClass('simple-icon-arrow-down');
+		}
+	});
 
 </script>
 @endpush

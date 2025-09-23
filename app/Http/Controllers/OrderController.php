@@ -463,36 +463,28 @@ class OrderController extends Controller
         ]);
     }
 
-    public function addItemWithFabric(Request $request, $orderId)
+    public function addItemFabric(Request $request, Order $order)
     {
-        $request->validate([
-            'product' => 'required|exists:products,id',
-            'fabric'  => 'required|string|max:255',
+        $item = $order->items()->create([
+            'product_id'   => $request->product_id,
+            'order_id'     => $order->id,
+            'user_id'      => auth()->id(),
+            'product_code' => $request->product_code,
+            'description'  => $request->description,
+            'price'        => $request->price,
+            'quantity'     => $request->quantity,
+            'total'        => $request->total,
+            'fabric_name'  => $request->fabric_name,
+            'fabric_price' => $request->fabric_price,
+            'drawer_name'  => $request->drawer_name,
+            'drawer_price' => $request->drawer_price,
         ]);
-
-        $product = Product::findOrFail($request->product);
-
-        $item = OrderItem::updateOrCreate(
-            [
-                'order_id'   => $orderId,
-                'product_id' => $product->id,
-                'fabric'     => $request->fabric, // assuming you added "fabric" column in order_items
-            ],
-            [
-                'product_code' => $product->product_code,
-                'description'  => $product->description,
-                'price'        => $product->sale_price,
-                'quantity'     => 1,
-                'total'        => $product->sale_price,
-            ]
-        );
         $item->order->recalcTotals();
         return response()->json([
             'success' => true,
             'item'    => $item
         ]);
     }
-
 
 
 
