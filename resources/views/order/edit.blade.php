@@ -478,6 +478,8 @@
 			if(historyStack.length === 0){
 				$('#backBtn').addClass('d-none');
 			}
+			$(this).closest('.drill-wrapper').find('.selected-product').remove();
+    		cachedProduct = null;
 		});
 
 		const fabricRanges = ["base", "bed frame", "headboard", "headboard design", "ottoman"];
@@ -491,11 +493,12 @@
 			let production = ($(this).data('production') || "").toLowerCase();
 			let desc = $(this).find('.add-to-order').data('desc');
     		let code = $(this).find('.add-to-order').data('code');
+			let price = $(this).find('.add-to-order').data('price');
 			updateBreadcrumb([section, range, desc]);
 			let productTitle = `${code} - ${desc}`;
 			let headerHtml = `
 				<div class="selected-product">
-					<div class="text-success alert alert-success heading"><b>${productTitle}</b></div>
+					<div class="text-success alert alert-success heading"><b>${productTitle} - ${price}</b></div>
 				</div>
 			`;
 			if (fabricRanges.includes(production)) {
@@ -544,9 +547,15 @@
 				cachedProduct.fabricPrice = price;
 			}
 			let fabricInfo = `
-				<div class="selected-fabric-info">
-					<div class="alert alert-success text-success mb-0 heading">
+				<div class="selected-fabric-info alert alert-success">
+					<div class="text-success mb-0 heading">
 						<b>Selected Fabric<br>${fabric}<br>${price.toFixed(2)}</b>
+					</div>
+					<div class="fabric-search">
+						<button type="button" class="btn btn-danger shadow btn-xs sharp remove-fabric-selection mb-1 ml-0 pl-1 pr-1 remove-icon">
+							<i class="glyph-icon simple-icon-trash"></i>
+						</button>
+						<input type="text" class="form-control fabric-search-input" placeholder="Search fabrics...">
 					</div>
 				</div>
 			`;
@@ -565,6 +574,49 @@
 			$('#drilldownContent').after(qtyHtml);
 		});
 
+		$(document).on('click', '.remove-fabric-selection', function () {
+			if (cachedProduct) {
+				delete cachedProduct.fabric;
+				delete cachedProduct.fabricPrice;
+			}
+			$('.fabric-btn').removeClass('active');
+			$('.selected-fabric-info').remove();
+			let placeholder = `
+				<div class="selected-fabric-info alert alert-info text-info">
+					<div class="mb-0 heading">
+						<b>Select Fabric</b>
+					</div>
+					<div class="fabric-search">
+						<input type="text" class="form-control fabric-search-input" placeholder="Search fabrics...">
+					</div>
+				</div>
+			`;
+			$('.selected-product .heading').after(placeholder);
+			$('.fabric-list').show();
+			$('.fabric-qty-form').remove();
+		});
+
+		$(document).on('click', '.remove-drawer-selection', function () {
+			if (cachedProduct) {
+				delete cachedProduct.drawer;
+				delete cachedProduct.drawerPrice;
+			}
+			$('.drawer-btn').removeClass('active');
+			$('.selected-drawer-info').remove();
+			let placeholder = `
+				<div class="selected-drawer-info alert alert-info text-info">
+					<div class="mb-0 heading">
+						<b>Select Drawers</b>
+					</div>
+					<div class="drawer-search">
+						<input type="text" class="form-control drawer-search-input" placeholder="Search drawers...">
+					</div>
+				</div>
+			`;
+			$('.selected-product .heading').after(placeholder);
+			$('.drawer-list').show();
+		});
+
 
 		$(document).on('click', '.drawer-btn', function () {
 			let $btn   = $(this);
@@ -580,9 +632,12 @@
 				}
 				$('.selected-drawer-info').remove();
 				let placeholder = `
-					<div class="selected-drawer-info">
-						<div class="alert alert-info text-info mb-0 heading">
+					<div class="selected-drawer-info alert alert-info text-info">
+						<div class="mb-0 heading">
 							<b>Select Drawers</b>
+						</div>
+						<div class="drawer-search">
+							<input type="text" class="form-control drawer-search-input" placeholder="Search Drawers...">
 						</div>
 					</div>
 				`;
@@ -597,9 +652,15 @@
 				cachedProduct.drawerPrice = price;
 			}
 			let drawerInfo = `
-				<div class="selected-drawer-info">
-					<div class="alert alert-success text-success mb-0 heading">
+				<div class="selected-drawer-info alert alert-success text-success">
+					<div class="mb-0 heading">
 						<b>Selected Drawer<br>${drawer}<br>${price.toFixed(2)}</b>
+					</div>
+					<div class="drawer-search">
+						<button type="button" class="btn btn-danger shadow btn-xs sharp remove-drawer-selection ml-0 mb-1 pl-1 pr-1 remove-icon">
+							<i class="glyph-icon simple-icon-trash"></i>
+						</button>
+						<input type="text" class="form-control drawer-search-input" placeholder="Search Drawers...">
 					</div>
 				</div>
 			`;
@@ -612,6 +673,14 @@
 
 		$(document).on('click', '.selected-fabric-info', function () {
 			$('.fabric-list').toggle();
+		});
+
+		$(document).on('focus click', '.fabric-search-input', function () {
+			$('.fabric-list').show();
+		});
+
+		$(document).on('focus click', '.drawer-search-input', function () {
+			$('.drawer-list').show();
 		});
 
 		$(document).on('click', '.selected-drawer-info', function () {
@@ -652,10 +721,83 @@
 					drawer_price: drawerPrice
 				},
 				success: function (res) {
-					alert("✅ Added " + cachedProduct.desc + 
-					(cachedProduct.fabric ? " with fabric: " + cachedProduct.fabric : "") + 
-					(cachedProduct.drawer ? " and drawer: " + cachedProduct.drawer : ""));
-					cachedProduct = null;
+					if (res.success) {
+						let item = res.item;
+						console.log(item);
+						let hasChildren = item.fabric_name || item.drawer_name ? 'has-children-row' : '';
+						let rowHtml = `
+						<tr data-code="${item.product_code}"
+							data-id="${item.product_id}"
+							class="${hasChildren}">
+							<td class="align-middle pr-0">
+								${(item.fabric_name || item.drawer_name) ? `
+									<button type="button" class="btn btn-xs btn-link text-primary toggle-children p-0" data-id="${item.id}">
+										<i class="glyph-icon simple-icon-arrow-down"></i>
+									</button>` : ``}
+							</td>
+							<td class="align-middle">${item.product_code}</td>
+							<td class="align-middle item-desc" contenteditable="true" data-id="${item.id}">
+								${item.description}
+							</td>
+							<td class="align-middle item-price" contenteditable="true" data-id="${item.id}">
+								${parseFloat(item.price).toFixed(2)}
+							</td>
+							<td class="align-middle item-qty">
+								<span class="qty-text">${item.quantity}</span>
+								<button type="button" class="btn btn-xs btn-link text-primary edit-qty" 
+										data-id="${item.id}" 
+										data-product="${item.product_id}" 
+										data-qty="${item.quantity}">
+									<i class="glyph-icon simple-icon-pencil"></i>
+								</button>
+							</td>
+							<td class="align-middle item-total">${parseFloat(item.total).toFixed(2)}</td>
+							<td class="align-middle">
+								<div class="d-flex">
+									<button type="button" class="btn btn-danger shadow btn-xs sharp remove-item" data-id="${item.id}">
+										<i class="glyph-icon simple-icon-trash"></i>
+									</button>
+								</div>
+							</td>
+						</tr>`;
+						if (item.fabric_name) {
+							rowHtml += `
+							<tr class="fabric-row child-row" data-parent="${item.id}">
+								<td class="align-middle" colspan="2"></td>
+								<td class="align-middle text-right">${item.fabric_name}</td>
+								<td class="align-middle">${parseFloat(item.fabric_price).toFixed(2)}</td>
+								<td class="align-middle">—</td>
+								<td class="align-middle">—</td>
+								<td class="align-middle">
+									<div class="d-flex">
+										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-fabric" data-id="${item.id}">
+											<i class="glyph-icon simple-icon-trash"></i>
+										</button>
+									</div>
+								</td>
+							</tr>`;
+						}
+						if (item.drawer_name) {
+							rowHtml += `
+							<tr class="drawer-row child-row" data-parent="${item.id}">
+								<td class="align-middle" colspan="2"></td>
+								<td class="align-middle text-right">${item.drawer_name}</td>
+								<td class="align-middle">${parseFloat(item.drawer_price).toFixed(2)}</td>
+								<td class="align-middle">—</td>
+								<td class="align-middle">—</td>
+								<td class="align-middle">
+									<div class="d-flex">
+										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-drawer" data-id="${item.id}">
+											<i class="glyph-icon simple-icon-trash"></i>
+										</button>
+									</div>
+								</td>
+							</tr>`;
+						}
+						$("#orderTable tbody").append(rowHtml);
+						cachedProduct = null;
+					}
+					updateTotals();
 				}
 			});
 		});
@@ -759,7 +901,7 @@
 									<div class="d-flex justify-content-end align-items-center">
 										Deposit <span class="badge badge-dark ml-2">${deposit.id}</span>
 										<input type="text" value="${deposit.description ?? ''}" 
-											class="form-control form-control-sm ml-2 deposit-desc" 
+											class="form-control ml-2 deposit-desc" 
 											style="width:200px; height:30px;">
 									</div>
 								</td>
@@ -978,12 +1120,19 @@
 
 			$.get(url, function (data) {
 				let html = `
-					<div class="selected-fabric-info"><div class="alert alert-info text-info mb-0 heading"><b>Select Fabric</b></div></div>
+					<div class="selected-fabric-info alert alert-info text-info">
+						<div class="mb-0 heading">
+							<b>Select Fabric</b>
+						</div>
+						<div class="fabric-search">
+							<input type="text" class="form-control fabric-search-input" placeholder="Search fabrics...">
+						</div>
+					</div>
 					<ul class="product-section fabric-list" style="display:none;">
 				`;
 
 				data.forEach(function (fabric) {
-					let fabricLabel = $('<div>').text(fabric.description).html(); // escape HTML safely
+					let fabricLabel = $('<div>').text(fabric.description).html();
 					let price = fabric.sale_price ? parseFloat(fabric.sale_price).toFixed(2) : '0.00';
 					html += `
 						<li>
@@ -1011,6 +1160,15 @@
 					$('#drilldownContent').html(html);
 				}
 
+				$(document).off('input.fabricSearch').on('input.fabricSearch', '.fabric-search-input', function () {
+					let query = $(this).val().toLowerCase();
+					$(".fabric-list").show();
+					$(".fabric-list li").each(function () {
+						let text = $(this).text().toLowerCase();
+						$(this).toggle(text.indexOf(query) !== -1);
+					});
+				});
+
 				// $('#drilldownContent').html(html);
 				// $('#dynamic-heading').text('Fabrics');
 				// $('.search-global').attr('placeholder', 'Search Fabrics').val('');
@@ -1032,7 +1190,13 @@
 			$.get(url, function(drawers){
 				let productTitle = cachedProduct ? `${cachedProduct.code} - ${cachedProduct.desc}` : '';
 				let html = existingHtml;
-				html += `<div class="selected-drawer-info"><div class="alert alert-info text-info mb-0 heading"><b>Select Drawers</b></div></div>
+				html += `
+					<div class="selected-drawer-info alert alert-info text-info">
+						<div class="mb-0 heading"><b>Select Drawers</b></div>
+						<div class="drawer-search">
+							<input type="text" class="form-control drawer-search-input" placeholder="Search Drawers...">
+						</div>
+					</div>
 				<ul class="product-section drawer-list" style="display:none">`;
 				drawers.forEach(function (drawer) {
 					let price = drawer.sale_price ? parseFloat(drawer.sale_price).toFixed(2) : '0.00';
@@ -1055,6 +1219,25 @@
 		}
 
 
+	});
+
+	$(document).off('input.drawer-search-input').on('input.fabricSearch', '.fabric-search-input', function () {
+		let query = $(this).val().toLowerCase();
+		$(".fabric-list").show();
+		$(".fabric-list li").each(function () {
+			let text = $(this).text().toLowerCase();
+			$(this).toggle(text.indexOf(query) !== -1);
+		});
+	});
+	
+
+	$(document).on('keyup', '.drawer-search-input', function () {
+		let query = $(this).val().toLowerCase();
+		$(".drawer-list").show();
+		$(".drawer-list li").each(function () {
+			let text = $(this).text().toLowerCase();
+			$(this).toggle(text.indexOf(query) !== -1);
+		});
 	});
 
 	$(document).on('click', '.remove-deposit', function(){
@@ -1130,11 +1313,9 @@
 	$(document).on('click', '.toggle-children', function () {
 		let parentId = $(this).data('id');
 		let $icon = $(this).find('i');
-
-		// Slide toggle child rows
+		console.log(parentId);
+		console.log($(`.child-row[data-parent="${parentId}"]`));
 		$(`.child-row[data-parent="${parentId}"]`).slideToggle('fast');
-
-		// Toggle icon direction
 		if ($icon.hasClass('simple-icon-arrow-down')) {
 			$icon.removeClass('simple-icon-arrow-down').addClass('simple-icon-arrow-up');
 		} else {
