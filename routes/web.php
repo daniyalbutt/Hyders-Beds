@@ -47,4 +47,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/fabrics/{section}/{range}/{product}', [ProductController::class, 'getFabrics'])->name('product.fabrics');
     Route::get('/products/{section}/{range}/{product}/drawers', [ProductController::class, 'getDrawers'])->name('product.drawers');
     Route::post('/orders/{order}/items/fabric', [OrderController::class, 'addItemFabric'])->name('orders.addItemFabric');
+    Route::post('/orders/{order}/toggle-draft', [OrderController::class, 'toggleDraft'])->name('orders.toggleDraft');
 });

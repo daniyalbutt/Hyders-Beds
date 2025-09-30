@@ -486,7 +486,17 @@ class OrderController extends Controller
         ]);
     }
 
+    public function toggleDraft(Request $request, Order $order)
+    {
+        $order->draft = $order->draft ? 0 : 1;
+        $order->save();
 
+        return response()->json([
+            'success' => true,
+            'draft'   => $order->draft,
+            'message' => $order->draft ? 'Order saved as draft.' : 'Order published.'
+        ]);
+    }
 
 
 }

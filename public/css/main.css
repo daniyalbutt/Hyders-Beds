@@ -292,3 +292,9 @@ ul.product-section.fabric-list li span, ul.product-section.drawer-list li span{
     margin-left: auto;
     display: inline-block;
 }
+
+.save-order {
+    border-top: 1px solid #f3f3f3;
+    border-bottom: 1px solid #f3f3f3;
+    padding: 8px 0;
+}

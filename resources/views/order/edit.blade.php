@@ -38,7 +38,7 @@
 						</div>
 					@endif
 					<div class="row">
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<div class="form-group mb-3">
 								<label class="form-label">Customer <strong>*</strong></label>
 								<select name="customer" class="form-control" disabled>
@@ -46,7 +46,7 @@
 								</select>
 							</div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-3">
 							<div class="form-group mb-3">
 								<label class="form-label">Delivery Address <strong>*</strong></label>
 								<select name="address" id="address-select" class="form-control" disabled>
@@ -54,10 +54,22 @@
 								</select>
 							</div>
 						</div>
-						<div class="col-md-4">
+						<div class="col-md-2">
 							<div class="form-group mb-3">
 								<label class="form-label">Order Number <strong>*</strong></label>
 								<input type="text" value="{{ $data->id }}" class="form-control" readonly>
+							</div>
+						</div>
+						<div class="col-md-2">
+							<div class="form-group mb-3">
+								<label class="form-label">Order Date <strong>*</strong></label>
+								<input type="text" value="{{ $data->order_date }}" class="form-control" readonly>
+							</div>
+						</div>
+						<div class="col-md-2">
+							<div class="form-group mb-3">
+								<label class="form-label">Required Date <strong>*</strong></label>
+								<input type="text" value="{{ $data->required_date }}" class="form-control" readonly>
 							</div>
 						</div>
 					</div>
@@ -257,6 +269,13 @@
 											</tr>
 										</tfoot>
 									</table>
+									<div class="save-order text-right">
+										<button type="button" 
+											class="btn {{ $data->draft == 1 ? 'btn-light' : 'btn-success' }} btn-save-order" 
+											data-order="{{ $data->id }}">
+											{{ $data->draft == 1 ? 'Draft' : 'Save Order' }}
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -834,9 +853,10 @@
 						} else {
 							let row = $(`
 								<tr data-code="${item.product_code}" data-id="${item.product_id}">
+									<td class="align-middle pr-0"></td>
 									<td class="align-middle">${item.product_code}</td>
-									<td class="align-middle">${item.description}</td>
-									<td class="align-middle">${parseFloat(item.price).toFixed(2)}</td>
+									<td class="align-middle item-desc" contenteditable="true" data-id="${item.id}">${item.description}</td>
+									<td class="align-middle item-price" contenteditable="true" data-id="${item.id}">${parseFloat(item.price).toFixed(2)}</td>
 									<td class="align-middle item-qty">${item.quantity}</td>
 									<td class="align-middle item-total">${item.total.toFixed(2)}</td>
 									<td class="align-middle">
@@ -1052,8 +1072,9 @@
 
 		$(document).on('blur', '.item-desc', function () {
 			let itemId = $(this).data('id');
-			let newDesc = $(this).text().trim(); // get edited text
+			let newDesc = $(this).text().trim();
 			let orderId = "{{ $data->id }}";
+			let $row = $(this).closest('tr');
 
 			$.ajax({
 				url: "{{ route('orders.updateItemDesc', ['order' => $data->id, 'item' => 'ITEM_ID']) }}"
@@ -1064,7 +1085,8 @@
 					description: newDesc
 				},
 				success: function (response) {
-					
+					$row.addClass('table-warning');
+					setTimeout(() => $row.removeClass('table-warning'), 800);
 				},
 				error: function () {
 					toastr.error("Error while updating description.");
@@ -1322,6 +1344,32 @@
 			$icon.removeClass('simple-icon-arrow-up').addClass('simple-icon-arrow-down');
 		}
 	});
+
+	$(document).on('click', '.btn-save-order', function () {
+		let $btn = $(this);
+		let orderId = $btn.data('order');
+
+		$.ajax({
+			url: `/orders/${orderId}/toggle-draft`,
+			type: 'POST',
+			data: {
+				_token: $('meta[name="csrf-token"]').attr('content')
+			},
+			success: function (response) {
+				if (response.success) {
+					if (response.draft == 0) {
+						$btn.removeClass('btn-light').addClass('btn-success').text('Save Order');
+					} else {
+						$btn.removeClass('btn-success').addClass('btn-light').text('Draft');
+					}
+				}
+			},
+			error: function (e) {
+				console.log(e);
+			}
+		});
+	});
+
 
 </script>
 @endpush

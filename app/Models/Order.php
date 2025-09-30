@@ -24,7 +24,8 @@ class Order extends Model
         'vat',
         'deposit_total',
         'grand_total',
-        'added_by'
+        'added_by',
+        'draft'
     ];
 
     public function get_customer(){

@@ -48,11 +48,12 @@
                 <tr>
                     <th>SNO.</th>
                     <th>Customer</th>
-                    <th>Order ID</th>
-                    <th>Order Reference</th>
+                    <th>ID</th>
+                    <th>Reference</th>
                     <th>Order Date</th>
-                    <th>Order Required Date</th>
+                    <th>Required Date</th>
                     <th>Delivery Address</th>
+                    <th>Draft</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -79,6 +80,9 @@
                     </td>
                     <td>
                         <p class="text-muted">{{ $value->address }}</p>
+                    </td>
+                    <td>
+                        {!! $value->draft == 0 ? '<span class="badge badge-light">Drafted</span>' : '<span class="badge badge-success">Published</span>' !!}
                     </td>
                     <td>
                         <div class="d-flex">
