@@ -135,7 +135,13 @@
                         </a>
                     </li>
                     @endcan
-                    <li><a href="#menu"><i class="iconsminds-three-arrow-fork"></i> Menu</a></li>
+                    @can('routes')
+                    <li class="{{ request()->routeIs('routes.*') ? 'active' : '' }}">
+                        <a href="{{ route('routes.index') }}">
+                            <i class="iconsminds-car"></i> Routes
+                        </a>
+                    </li>
+                    @endcan
                     <li><a href="Blank.Page.html"><i class="iconsminds-bucket"></i> Blank Page</a></li>
                     <li><a href="https://dore-jquery-docs.coloredstrategies.com" target="_blank"><i class="iconsminds-library"></i> Docs</a></li>
                     @can('role')

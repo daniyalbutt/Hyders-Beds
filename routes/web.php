@@ -6,6 +6,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RouteController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -48,4 +49,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/{section}/{range}/{product}/drawers', [ProductController::class, 'getDrawers'])->name('product.drawers');
     Route::post('/orders/{order}/items/fabric', [OrderController::class, 'addItemFabric'])->name('orders.addItemFabric');
     Route::post('/orders/{order}/toggle-draft', [OrderController::class, 'toggleDraft'])->name('orders.toggleDraft');
+    Route::resource('routes', RouteController::class);
 });

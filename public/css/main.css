@@ -1,7 +1,7 @@
 html{width:100%}body{overflow-x:hidden!important}body.show-spinner>main{overflow:hidden!important}body.show-spinner>*{opacity:0}body.show-spinner::after{content:" ";display:inline-block;width:30px;height:30px;border:2px solid rgba(0,0,0,.2);border-radius:50%;border-top-color:rgba(0,0,0,.3);animation:spin 1s ease-in-out infinite;-webkit-animation:spin 1s ease-in-out infinite;left:calc(50% - 15px);top:calc(50% - 15px);position:fixed;z-index:1}@keyframes spin{to{transform:rotate(360deg)}}@-webkit-keyframes spin{to{-webkit-transform:rotate(360deg)}}
 
 ul.role-wrapper {
-    display: flex;
+    display: block;
     flex-wrap: wrap;
     gap: 0;
     margin-top: 20px;
@@ -297,4 +297,33 @@ ul.product-section.fabric-list li span, ul.product-section.drawer-list li span{
     border-top: 1px solid #f3f3f3;
     border-bottom: 1px solid #f3f3f3;
     padding: 8px 0;
+}
+
+ul.role-wrapper > ul {
+    padding: 0 !important;
+    list-style: none;
+}
+
+ul.role-wrapper ul {
+    padding: 0;
+    list-style: none;
+    display: flex;
+    margin-top: 4px;
+}
+
+ul.role-wrapper h5 {
+    margin-bottom: 10px;
+}
+
+label.heading-label {
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: 4px;
+}
+
+li.heading {
+    border-bottom: 1px solid #e5e5e5;
+    padding-bottom: 4px;
+    margin-bottom: 15px;
 }

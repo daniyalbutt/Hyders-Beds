@@ -7,6 +7,7 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Hash;
 use DB;
+use Illuminate\Support\Str;
 
 class RoleController extends Controller
 {
@@ -73,8 +74,12 @@ class RoleController extends Controller
      */
     public function edit($id)
     {
-        $permission = Permission::get();
-        $data = Role::where('id', $id)->first();
+        $data = Role::findOrFail($id);
+        $permission = Permission::all()->groupBy(function ($perm) {
+            return Str::afterLast($perm->name, ' ') === $perm->name 
+                ? $perm->name
+                : Str::afterLast($perm->name, ' ');
+        });
         $rolePermissions = $data->getAllPermissions()->pluck('name')->toArray();
         return view('role.edit', compact('data', 'permission', 'rolePermissions'));
     }
