@@ -25,7 +25,8 @@ class Order extends Model
         'deposit_total',
         'grand_total',
         'added_by',
-        'draft'
+        'draft',
+        'route_id'
     ];
 
     public function get_customer(){
@@ -52,6 +53,11 @@ class Order extends Model
             'deposit_total' => $depositTotal,
             'grand_total'   => $grandTotal,
         ]);
+    }
+
+    public function route()
+    {
+        return $this->belongsTo(Route::class);
     }
 
 

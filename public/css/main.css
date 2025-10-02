@@ -327,3 +327,7 @@ li.heading {
     padding-bottom: 4px;
     margin-bottom: 15px;
 }
+
+.route-row.active-row {
+    background-color: #e5e5e5;
+}

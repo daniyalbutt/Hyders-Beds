@@ -21,4 +21,9 @@ class Route extends Model
         'end_location'
     ];
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Route;
+use App\Models\Order;
 use Carbon\Carbon;
 
 class RouteController extends Controller
@@ -33,7 +34,9 @@ class RouteController extends Controller
         $routes = Route::whereBetween('start_date', [
             $startOfWeek->copy()->format('Y-m-d'),
             $startOfWeek->copy()->addDays(7)->format('Y-m-d')
-        ])->get();
+        ])
+        ->orderBy('start_time')
+        ->get();
 
         foreach ($days as &$day) {
             $day['routes'] = $routes->where('start_date', $day['date']);
@@ -98,4 +101,24 @@ class RouteController extends Controller
         $route->delete();
         return redirect()->back()->with('success', 'Route deleted Successfully');
     }
+
+    public function unassignedOrders(Request $request)
+    {
+        $orders = Order::with('get_customer')->whereNull('route_id')->where('draft', 1)->get();
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+    }
+
+    public function assignOrder(Request $request)
+    {
+        $order = Order::findOrFail($request->order_id);
+        $order->update(['route_id' => $request->route_id]);
+
+        return response()->json([
+            'success' => true
+        ]);
+    }
+
 }

@@ -50,4 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/items/fabric', [OrderController::class, 'addItemFabric'])->name('orders.addItemFabric');
     Route::post('/orders/{order}/toggle-draft', [OrderController::class, 'toggleDraft'])->name('orders.toggleDraft');
     Route::resource('routes', RouteController::class);
+    Route::get('route/unassigned-orders', [RouteController::class, 'unassignedOrders'])->name('routes.unassignedOrders');
+    Route::post('route/assign-order', [RouteController::class, 'assignOrder'])->name('routes.assignOrder');
+
 });

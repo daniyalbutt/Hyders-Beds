@@ -42,12 +42,20 @@
         @if($value['routes']->count())
         <table class="table table-stripped responsive nowrap mt-3 mb-0 align-middle">
             @foreach($value['routes'] as $route)
-            <tr>
+            <tr class="route-row">
+                <td class="align-middle">
+                    @if($route->orders && $route->orders->count() > 0)
+                        <a href="javascript:;" class="toggle-orders" data-id="{{ $route->id }}">
+                            <i class="glyph-icon simple-icon-arrow-down"></i>
+                        </a>
+                    @endif
+                </td>
                 <td class="align-middle">{{ $route->name }}</td>
                 <td class="align-middle">{{ $route->start_date }} - {{ $route->start_time->format('h:i A') }}</td>
                 <td class="align-middle">({{ $route->start_location }} → {{ $route->end_location }})</td>
-                <td class="pr-0 align-middle">
+                <td class="align-middle">
                     <div class="d-flex justify-content-end">
+                        <a href="javascript:;" data-id="{{ $route->id }}" data-name="{{ $route->name }}" class="btn btn-info shadow btn-xs sharp mr-2 open-route-order" title="Add Order"><i class="glyph-icon iconsminds-add"></i></a>
                         @can('edit routes')
                         <a href="{{ route('routes.edit', $route->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
                         @endcan
@@ -61,27 +69,150 @@
                     </div>
                 </td>
             </tr>
+            @if($route->orders && $route->orders->count() > 0)
+            <tr class="orders-row orders-{{ $route->id }}" style="display: none;">
+                <td colspan="5" class="p-0">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th style="border: 0;"></th>
+                                <th class="pl-0">Order ID</th>
+                                <th>Customer</th>
+                                <th>Address</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($route->orders as $orders)
+                            <tr>
+                                <td style="border: 0;"></td>
+                                <td class="pl-0">{{ $orders->id }}</td>
+                                <td>{{ $orders->get_customer->name }}</td>
+                                <td>{{ $orders->address }}</td>
+                                <td class="text-right">
+                                    <form action="" method="post" class="ml-2">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="glyph-icon simple-icon-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot style="background-color: #e5e5e5;">
+                            <tr>
+                                <th colspan="5"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </td>
+            </tr>
+            @endif
             @endforeach
         </table>
         @endif
     </div>
 </div>
+
+<div class="modal fade bd-example-modal-lg" id="routeOrderModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Order to Route</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="assignOrderForm">
+                    <input type="hidden" name="route_id" id="route_id">
+
+                    <div class="form-group">
+                        <label for="order_id">Select Order</label>
+                        <select class="form-control" name="order_id" id="order_id" required>
+                            <option value="">Loading orders...</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">Assign</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endforeach
 
 @endsection
 
 @push('scripts')
-   <!-- <script type="text/javascript">-->
-   <!-- 	$(function () {-->
-   <!-- 		'use strict';-->
-   <!-- 		$('#example1').DataTable({-->
-		 <!-- 		'paging'      : true,-->
-		 <!-- 		'lengthChange': false,-->
-		 <!-- 		'searching'   : false,-->
-		 <!-- 		'ordering'    : true,-->
-		 <!-- 		'info'        : true,-->
-		 <!-- 		'autoWidth'   : false-->
-			<!--});-->
-   <!-- 	});-->
-   <!-- </script>-->
+<script>
+    $(document).on('click', '.open-route-order', function () {
+        let routeId = $(this).data('id');
+        let routeName = $(this).data('name');
+
+        $('#route_id').val(routeId);
+        $('#routeOrderModal .modal-title').text("Assign Order to " + routeName);
+
+        // Reset dropdown
+        $('#order_id').html('<option value="">Loading orders...</option>');
+
+        // Fetch orders not assigned yet
+        $.get("{{ route('routes.unassignedOrders') }}", { route_id: routeId }, function (res) {
+            if (res.success) {
+                let options = '<option value="">-- Select Order --</option>';
+                res.orders.forEach(function (order) {
+                    options += `<option value="${order.id}">${order.id} - ${order.get_customer.name} - ${order.address} - ${order.grand_total}</option>`;
+                });
+                $('#order_id').html(options);
+            } else {
+                $('#order_id').html('<option value="">No available orders</option>');
+            }
+        });
+
+        $('#routeOrderModal').modal('show');
+    });
+
+    $(document).on('submit', '#assignOrderForm', function (e) {
+        e.preventDefault();
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        $.ajax({
+            url: "{{ route('routes.assignOrder') }}",
+            method: "POST",
+            data: $(this).serialize(),
+            success: function (res) {
+                if (res.success) {
+                    alert("✅ Order assigned successfully!");
+                    $('#routeOrderModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert("❌ Failed to assign order");
+                }
+            }
+        });
+    });
+    $(document).on('click', '.toggle-orders', function () {
+        let routeId = $(this).data('id');
+        let $icon = $(this).find('i');
+        let $row = $('.orders-' + routeId);
+        let $parentRow = $(this).closest('.route-row');
+
+        $row.toggle();
+
+        if ($row.is(':visible')) {
+            $icon.removeClass('simple-icon-arrow-down').addClass('simple-icon-arrow-up');
+            $parentRow.addClass('active-row');
+        } else {
+            $icon.removeClass('simple-icon-arrow-up').addClass('simple-icon-arrow-down');
+            $parentRow.removeClass('active-row');
+        }
+    });
+
+
+
+</script>
 @endpush
