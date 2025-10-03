@@ -7,14 +7,14 @@
             <ol class="breadcrumb pt-0">
                 <li class="breadcrumb-item"><a href="#">Home</a></li>
                 <li class="breadcrumb-item"><a href="#">Routes</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Add Routes</li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Routes - {{ $data->name }}</li>
             </ol>
         </nav>
     </div>
 	<div class="col-lg-6">
 		<div class="text-right">
 			@can('routes')
-			<a href="{{ route('routes.index') }}" class="btn btn-primary">Routes List</a>
+			<a href="{{ route('routes.index') }}" class="btn btn-primary">Route List</a>
 			@endcan
 		</div>
 	</div>
@@ -22,8 +22,9 @@
 		<div class="separator mb-5"></div>
 	</div>
 </div>
-<form class="form" method="post" action="{{ route('routes.store') }}">
+<form class="form" method="post" action="{{ route('routes.update', $data->id) }}">
 	@csrf
+	@method('PUT')
 	<div class="card h-100 mt-4">
 		<div class="card-body">
 			<h5 class="card-title">Routes Detail</h5>
@@ -41,38 +42,39 @@
 						<div class="col-md-4">
 							<div class="form-group mb-3">
 								<label class="form-label">Name <strong>*</strong></label>
-								<input type="text" class="form-control" name="name" required>
+								<input type="text" class="form-control" name="name" required value="{{ $data->name }}">
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group mb-3">
 								<label class="form-label">Start Date <strong>*</strong></label>
-								<input type="date" class="form-control" name="start_date" required>
+								<input type="date" class="form-control" name="start_date" required value="{{ $data->start_date }}">
 							</div>
 						</div>
 						<div class="col-md-4">
 							<div class="form-group mb-3">
 								<label class="form-label">Start Time <strong>*</strong></label>
-								<input type="time" class="form-control" name="start_time" required>
+								<input type="time" class="form-control" name="start_time" value="{{ $data->start_time ? \Carbon\Carbon::parse($data->start_time)->format('H:i') : '' }}" required>
+
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="form-group mb-3">
 								<label class="form-label">Start Location <strong>*</strong></label>
-								<input type="text" class="form-control" name="start_location" required>
+								<input type="text" class="form-control" name="start_location" required value="{{ $data->start_location }}">
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="form-group mb-3">
 								<label class="form-label">End Location <strong>*</strong></label>
-								<input type="text" class="form-control" name="end_location" required>
+								<input type="text" class="form-control" name="end_location" required value="{{ $data->end_location }}">
 							</div>
 						</div>
 					</div>
 				</div>
 				<!-- /.box-body -->
 				<div class="box-footer text-right">
-					<button type="submit" class="btn btn-primary">Save Route</button>
+					<button type="submit" class="btn btn-primary">Update Route</button>
 				</div>
 			</div>
 		</div>

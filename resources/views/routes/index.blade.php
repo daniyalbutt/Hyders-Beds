@@ -57,20 +57,22 @@
                     <div class="d-flex justify-content-end">
                         <a href="javascript:;" data-id="{{ $route->id }}" data-name="{{ $route->name }}" class="btn btn-info shadow btn-xs sharp mr-2 open-route-order" title="Add Order"><i class="glyph-icon iconsminds-add"></i></a>
                         @can('edit routes')
-                        <a href="{{ route('routes.edit', $route->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
+                        <a href="{{ route('routes.edit', $route->id) }}" class="btn btn-primary shadow btn-xs sharp me-1 mr-2"><i class="glyph-icon iconsminds-file-edit"></i></a>
                         @endcan
                         @can('delete routes')
-                        <form action="{{ route('routes.destroy', $route->id) }}" method="post" class="ml-2">
+                        <form id="deleteRouteForm-{{ $route->id }}" action="{{ route('routes.destroy', $route->id) }}" method="post" class="d-inline">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="glyph-icon simple-icon-trash"></i></button>
+                            <button type="button" class="btn btn-danger shadow btn-xs sharp confirm-delete-route" data-id="{{ $route->id }}">
+                                <i class="glyph-icon simple-icon-trash"></i>
+                            </button>
                         </form>
                         @endcan
                     </div>
                 </td>
             </tr>
             @if($route->orders && $route->orders->count() > 0)
-            <tr class="orders-row orders-{{ $route->id }}" style="display: none;">
+            <tr class="orders-row orders-{{ $route->id }}">
                 <td colspan="5" class="p-0">
                     <table class="table mb-0">
                         <thead>
@@ -90,11 +92,11 @@
                                 <td>{{ $orders->get_customer->name }}</td>
                                 <td>{{ $orders->address }}</td>
                                 <td class="text-right">
-                                    <form action="" method="post" class="ml-2">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="glyph-icon simple-icon-trash"></i></button>
-                                    </form>
+                                    <button type="button"
+                                            class="btn btn-danger shadow btn-xs sharp confirm-delete-btn"
+                                            data-id="{{ $orders->id }}">
+                                        <i class="glyph-icon simple-icon-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                             @endforeach
@@ -113,7 +115,7 @@
         @endif
     </div>
 </div>
-
+@endforeach
 <div class="modal fade bd-example-modal-lg" id="routeOrderModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -129,7 +131,7 @@
 
                     <div class="form-group">
                         <label for="order_id">Select Order</label>
-                        <select class="form-control" name="order_id" id="order_id" required>
+                        <select class="form-control select2-single" name="order_id" id="order_id" required>
                             <option value="">Loading orders...</option>
                         </select>
                     </div>
@@ -141,7 +143,45 @@
     </div>
 </div>
 
-@endforeach
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove this order from the route?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmRouteDeleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Route Delete</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this route?  
+                <br><small class="text-danger">All assigned orders will be unassigned.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteRouteBtn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @endsection
 
@@ -186,15 +226,71 @@
             data: $(this).serialize(),
             success: function (res) {
                 if (res.success) {
-                    alert("✅ Order assigned successfully!");
+                    let order = res.order;
+                    let $ordersRow = $(".orders-row.orders-" + order.route_id);
+                    let newRow = `
+                        <tr>
+                            <td style="border: 0;"></td>
+                            <td class="pl-0">${order.id}</td>
+                            <td>${order.get_customer.name ?? ''}</td>
+                            <td>${order.address ?? ''}</td>
+                            <td class="text-right">
+                                <button type="button"
+                                        class="btn btn-danger shadow btn-xs sharp confirm-delete-btn"
+                                        data-id="${order.id}">
+                                    <i class="glyph-icon simple-icon-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    if ($ordersRow.length) {
+                        $ordersRow.find("tbody").append(newRow).show();
+                    } else {
+                        let ordersTable = `
+                            <tr class="orders-row orders-${order.route_id}" style="display:none;">
+                                <td colspan="5" class="p-0">
+                                    <table class="table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="border: 0;"></th>
+                                                <th class="pl-0">Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Address</th>
+                                                <th class="text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${newRow}
+                                        </tbody>
+                                        <tfoot style="background-color: #e5e5e5;">
+                                            <tr><th colspan="5"></th></tr>
+                                        </tfoot>
+                                    </table>
+                                </td>
+                            </tr>
+                        `;
+
+                        let $routeRow = $(`[data-id="${order.route_id}"]`).closest("tr");
+                        $routeRow.after(ordersTable);
+                        if ($routeRow.find(".toggle-orders").length === 0) {
+                            $routeRow.find("td:first").html(`
+                                <a href="javascript:;" class="toggle-orders" data-id="${order.route_id}">
+                                    <i class="glyph-icon simple-icon-arrow-down"></i>
+                                </a>
+                            `);
+                        }
+                        $(".orders-row.orders-" + order.route_id).fadeIn();
+                    }
+
                     $('#routeOrderModal').modal('hide');
-                    location.reload();
                 } else {
-                    alert("❌ Failed to assign order");
+
                 }
             }
         });
     });
+
+    
     $(document).on('click', '.toggle-orders', function () {
         let routeId = $(this).data('id');
         let $icon = $(this).find('i');
@@ -209,6 +305,59 @@
         } else {
             $icon.removeClass('simple-icon-arrow-up').addClass('simple-icon-arrow-down');
             $parentRow.removeClass('active-row');
+        }
+    });
+
+    let orderIdToDelete = null;
+    let $rowToDelete = null;
+
+    $(document).on('click', '.confirm-delete-btn', function () {
+        orderIdToDelete = $(this).data('id');
+        $rowToDelete = $(this).closest('tr');
+        $('#confirmDeleteModal').modal('show');
+    });
+
+    $('#confirmDeleteBtn').on('click', function () {
+        if (orderIdToDelete) {
+            $.ajax({
+                url: "{{ route('routes.removeOrder') }}", // backend route
+                method: "POST",
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    order_id: orderIdToDelete
+                },
+                success: function (res) {
+                    if (res.success) {
+                        let $tbody = $rowToDelete.closest('tbody');
+                        let $table = $rowToDelete.closest('table');
+                        $rowToDelete.fadeOut(300, function () {
+                            $(this).remove();
+                            if ($tbody.find('tr').length === 0) {
+                                $table.find('thead').remove();
+                                $table.closest('.orders-row').remove();
+                                let routeId = $table.closest('.orders-row').attr('class').match(/orders-(\d+)/)[1];
+                                $(`.toggle-orders[data-id="${routeId}"]`).remove();
+                            }
+                        });
+                        $('#confirmDeleteModal').modal('hide');
+                    } else {
+                        
+                    }
+                }
+            });
+        }
+    });
+
+    let routeIdToDelete = null;
+
+    $(document).on('click', '.confirm-delete-route', function () {
+        routeIdToDelete = $(this).data('id');
+        $('#confirmRouteDeleteModal').modal('show');
+    });
+
+    $('#confirmDeleteRouteBtn').on('click', function () {
+        if (routeIdToDelete) {
+            $('#deleteRouteForm-' + routeIdToDelete).submit();
         }
     });
 

@@ -52,5 +52,6 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('routes', RouteController::class);
     Route::get('route/unassigned-orders', [RouteController::class, 'unassignedOrders'])->name('routes.unassignedOrders');
     Route::post('route/assign-order', [RouteController::class, 'assignOrder'])->name('routes.assignOrder');
+    Route::post('routes/remove-order', [RouteController::class, 'removeOrder'])->name('routes.removeOrder');
 
 });
