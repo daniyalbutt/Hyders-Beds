@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\TaskName;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Hash;
@@ -43,7 +44,8 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('user.create', compact('roles'));
+        $tasks = TaskName::orderBy('order')->get();
+        return view('user.create', compact('roles', 'tasks'));
     }
 
     /**
@@ -66,6 +68,9 @@ class UserController extends Controller
         $data->password = Hash::make($request->password);
         $data->save();
         $data->assignRole($request->role);
+        if ($request->role === 'production' && $request->tasks) {
+            $user->tasks()->sync($request->tasks);
+        }
         return redirect()->back()->with('success', 'User Created Successfully');
     }
 
@@ -89,8 +94,10 @@ class UserController extends Controller
     public function edit($id)
     {
         $data = User::find($id);
+        $tasks = TaskName::orderBy('order')->get();
+        $userTasks = $data->tasks()->pluck('task_name_id')->toArray();
         $roles = Role::all();
-        return view('user.edit', compact('data', 'roles'));
+        return view('user.edit', compact('data', 'roles', 'tasks', 'userTasks'));
     }
 
     /**
@@ -115,6 +122,11 @@ class UserController extends Controller
         }
         $data->save();
         $data->syncRoles($request->role);
+        if ($request->role === 'production') {
+            $user->tasks()->sync($request->tasks ?? []);
+        } else {
+            $user->tasks()->detach();
+        }
         return redirect()->back()->with('success', 'User Updated Successfully');
     }
 

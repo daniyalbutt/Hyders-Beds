@@ -63,7 +63,7 @@
 						<td>
 							<div class="d-flex mt-2">
 								@can('edit role')
-								<a href="{{ route('roles.edit', $value->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
+								<a href="{{ route('roles.edit', $value->id) }}" class="btn btn-primary shadow btn-xs sharp mr-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
 								@endcan
 								@can('delete role')
 								<form action="{{ route('roles.destroy', $value->id) }}" method="post">

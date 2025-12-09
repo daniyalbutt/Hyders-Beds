@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RouteController;
+use App\Http\Controllers\TaskNameController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -49,9 +50,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/{section}/{range}/{product}/drawers', [ProductController::class, 'getDrawers'])->name('product.drawers');
     Route::post('/orders/{order}/items/fabric', [OrderController::class, 'addItemFabric'])->name('orders.addItemFabric');
     Route::post('/orders/{order}/toggle-draft', [OrderController::class, 'toggleDraft'])->name('orders.toggleDraft');
+    Route::post('/orders/{id}/production-toggle', [OrderController::class, 'toggleProduction']);
     Route::resource('routes', RouteController::class);
     Route::get('route/unassigned-orders', [RouteController::class, 'unassignedOrders'])->name('routes.unassignedOrders');
     Route::post('route/assign-order', [RouteController::class, 'assignOrder'])->name('routes.assignOrder');
     Route::post('routes/remove-order', [RouteController::class, 'removeOrder'])->name('routes.removeOrder');
+    Route::resource('task-names', TaskNameController::class);
+    Route::post('/task-names/reorder', [TaskNameController::class, 'reorder'])->name('task-names.reorder');
 
 });

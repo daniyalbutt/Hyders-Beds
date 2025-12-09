@@ -92,6 +92,9 @@
                                 <td>{{ $orders->get_customer->name }}</td>
                                 <td>{{ $orders->address }}</td>
                                 <td class="text-right">
+                                    @can('edit order')
+                                    <a href="{{ route('orders.edit', $orders->id) }}" class="btn btn-primary shadow btn-xs sharp me-1 mr-2"><i class="glyph-icon iconsminds-file-edit"></i></a>
+                                    @endcan
                                     <button type="button"
                                             class="btn btn-danger shadow btn-xs sharp confirm-delete-btn"
                                             data-id="{{ $orders->id }}">

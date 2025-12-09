@@ -12,7 +12,21 @@
         </nav>
     </div>
 	<div class="col-lg-6">
-		<div class="text-right">
+		<div class="text-right d-flex align-items-center gap-5 justify-content-end">
+			@if ($data->route)
+				<div class="d-flex align-items-center gap-2 mr-5">
+					<label class="custom-toggle mb-0">
+						<input type="checkbox"
+							class="order-route-toggle"
+							data-order-id="{{ $data->id }}"
+							{{ $data->send_to_production ? 'checked' : '' }} />
+						<span class="custom-toggle-slider"></span>
+					</label>
+
+					<span class="ml-2">Send to Production</span>
+				</div>
+			@endif
+
 			@can('order')
 			<a href="{{ route('orders.index') }}" class="btn btn-primary">Orders List</a>
 			@endcan
@@ -1370,6 +1384,21 @@
 		});
 	});
 
+	$('.order-route-toggle').on('change', function() {
+        let orderId = $(this).data('order-id');
+        let value = $(this).is(':checked') ? 1 : 0;
 
+        $.ajax({
+            url: "/orders/" + orderId + "/production-toggle",
+            method: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                send_to_production: value
+            },
+            success: function() {
+                console.log("Updated successfully");
+            }
+        });
+    });
 </script>
 @endpush

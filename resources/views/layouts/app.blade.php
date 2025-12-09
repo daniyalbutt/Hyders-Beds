@@ -142,7 +142,13 @@
                         </a>
                     </li>
                     @endcan
-                    <li><a href="Blank.Page.html"><i class="iconsminds-bucket"></i> Blank Page</a></li>
+                    @can('task_names')
+                    <li class="{{ request()->routeIs('task-names.*') ? 'active' : '' }}">
+                        <a href="{{ route('task-names.index') }}">
+                            <i class="iconsminds-notepad"></i> Task Names
+                        </a>
+                    </li>
+                    @endcan
                     <li><a href="https://dore-jquery-docs.coloredstrategies.com" target="_blank"><i class="iconsminds-library"></i> Docs</a></li>
                     @can('role')
                     <li class="{{ request()->routeIs('roles.*') ? 'active' : '' }}">

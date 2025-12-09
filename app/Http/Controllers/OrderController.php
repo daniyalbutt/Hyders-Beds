@@ -498,5 +498,16 @@ class OrderController extends Controller
         ]);
     }
 
+    public function toggleProduction(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        $order->send_to_production = $request->send_to_production;
+        $order->save();
+
+        return response()->json(['success' => true]);
+    }
+
+
 
 }

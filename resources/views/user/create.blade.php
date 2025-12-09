@@ -52,6 +52,12 @@
 							</div>
 						</div>
 						<div class="col-md-3">
+							<div class="form-group">
+								<label class="form-label">Password</label>
+								<input type="text" class="form-control" name="password" required>
+							</div>
+						</div>
+						<div class="col-md-3">
 							<div class="form-group mb-3">
 								<label class="form-label">Role</label>
 								<select name="role" id="role" class="form-control" required>
@@ -62,17 +68,24 @@
 								</select>
 							</div>
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-12" id="production-tasks" style="display:none;">
+							<label class="form-label">Assign Tasks</label>
 							<div class="form-group">
-								<label class="form-label">Password</label>
-								<input type="text" class="form-control" name="password" required>
+								@foreach($tasks as $task)
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" name="tasks[]" value="{{ $task->id }}" id="task_{{ $task->id }}">
+										<label class="form-check-label" for="task_{{ $task->id }}">
+											{{ ucwords(str_replace('_', ' ', $task->name)) }}
+										</label>
+									</div>
+								@endforeach
 							</div>
 						</div>
 					</div>
 				</div>
 				<!-- /.box-body -->
 				<div class="box-footer">
-					<button type="submit" class="btn btn-primary">Save</button>
+					<button type="submit" class="btn btn-primary">Save User</button>
 				</div>
 			</form>
 		</div>
@@ -81,4 +94,16 @@
 @endsection
 
 @push('scripts')
+<script>
+    $(document).ready(function() {
+        $('#role').change(function() {
+            if ($(this).val() === 'production') {
+                $('#production-tasks').show();
+            } else {
+                $('#production-tasks').hide();
+                $('#production-tasks input[type=checkbox]').prop('checked', false);
+            }
+        });
+    });
+</script>
 @endpush

@@ -54,6 +54,7 @@
                     <th>Required Date</th>
                     <th>Delivery Address</th>
                     <th>Draft</th>
+                    <th>Production</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -83,6 +84,13 @@
                     </td>
                     <td>
                         {!! $value->draft == 0 ? '<span class="badge badge-light">Drafted</span>' : '<span class="badge badge-success">Published</span>' !!}
+                    </td>
+                    <td>
+                        @if ($value->send_to_production)
+                        <span class="badge badge-success">Yes</span>
+                        @else
+                        <span class="badge badge-danger">No</span>
+                        @endif
                     </td>
                     <td>
                         <div class="d-flex">

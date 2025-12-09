@@ -60,7 +60,7 @@
 										class="group-checkbox" 
 										id="group_checkbox_{{ $group }}" 
 										{{ $allChecked ? 'checked' : '' }}>
-									<label class="heading-label" for="group_checkbox_{{ $group }}"><strong>{{ ucfirst($group) }}</strong></label>
+									<label class="heading-label" for="group_checkbox_{{ $group }}"><strong>{{ ucfirst(str_replace('_', ' ', $group)) }}</strong></label>
 
 									<ul class="ml-3">
 										@foreach($perms as $perm)
@@ -70,7 +70,9 @@
 													class="child-checkbox child-{{ $group }}" 
 													id="perm_checkbox_{{ $perm->id }}" 
 													{{ in_array($perm->name, $rolePermissions) ? 'checked' : '' }} />
-												<label for="perm_checkbox_{{ $perm->id }}">{{ ucfirst($perm->name) }}</label>
+												<label for="perm_checkbox_{{ $perm->id }}">
+													{{ ucwords(str_replace('_', ' ', $perm->name)) }}
+												</label>
 											</li>
 										@endforeach
 									</ul>

@@ -52,4 +52,8 @@ class User extends Authenticatable
         return $this->hasMany(OrderItem::class);
     }
     
+    public function tasks()
+    {
+        return $this->belongsToMany(TaskName::class, 'task_user');
+    }
 }
