@@ -20,28 +20,23 @@ class RouteController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
-        $days = [];
-        for ($i = 0; $i < 8; $i++) {
-            $days[] = [
-                'day'  => $startOfWeek->copy()->addDays($i)->format('l'),
-                'date' => $startOfWeek->copy()->addDays($i)->format('Y-m-d'),
-            ];
-        }
-        $routes = Route::whereBetween('start_date', [
-            $startOfWeek->copy()->format('Y-m-d'),
-            $startOfWeek->copy()->addDays(7)->format('Y-m-d')
-        ])
-        ->orderBy('start_time')
-        ->get();
-        foreach ($days as &$day) {
-            $day['routes'] = $routes->where('start_date', $day['date']);
-        }
-        $days = array_reverse($days);
-        return view('routes.index', compact('days'));
+        $searchName = $request->get('name');
+        $searchDate = $request->get('date');
+        $routesQuery = Route::with('orders')
+            ->when($searchName, fn($q) => $q->where('name', 'like', "%{$searchName}%"))
+            ->when($searchDate, fn($q) => $q->where('start_date', $searchDate))
+            ->orderBy('start_date', 'desc')
+            ->orderBy('start_time', 'asc');
+
+        $routes = $routesQuery->get();
+        $days = $routes->groupBy('start_date');
+        return view('routes.index', compact('days', 'searchName', 'searchDate'));
     }
+
+
+
 
 
     /**

@@ -149,7 +149,13 @@
                         </a>
                     </li>
                     @endcan
-                    <li><a href="https://dore-jquery-docs.coloredstrategies.com" target="_blank"><i class="iconsminds-library"></i> Docs</a></li>
+                    @can('process')
+                    <li class="{{ request()->routeIs('process.*') ? 'active' : '' }}">
+                        <a href="{{ route('process.index') }}">
+                            <i class="iconsminds-library"></i> Process
+                        </a>
+                    </li>
+                    @endcan
                     @can('role')
                     <li class="{{ request()->routeIs('roles.*') ? 'active' : '' }}">
                         <a href="{{ route('roles.index') }}">

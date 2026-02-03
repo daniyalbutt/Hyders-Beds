@@ -62,9 +62,70 @@
 							</div>
 						</div>
 					</div>
+					<hr>
+					<h6>Production Type Order</h6>
+
+					<div id="repeater">
+						@forelse($data->productionTypes as $key => $row)
+						    <div class="row repeater-item mb-2 {{ $key == 0 ? 'first-row' : '' }}">
+								<div class="col-md-5">
+									<select name="production[{{ $key }}][production_type]" class="form-control" required>
+										<option value="">Select Production Type</option>
+										@foreach($productionTypes as $type)
+											<option value="{{ $type }}" {{ $row->production_type == $type ? 'selected' : '' }}>
+												{{ $type }}
+											</option>
+										@endforeach
+									</select>
+								</div>
+
+								<div class="col-md-4">
+									<input type="number"
+										name="production[{{ $key }}][order_number]"
+										class="form-control"
+										value="{{ $row->order_number }}"
+										placeholder="Order Number"
+										required>
+								</div>
+
+								<div class="col-md-3">
+								@if($key != 0)
+									<button type="button" class="btn btn-danger remove-row">Remove</button>
+								@endif
+								@if($key == 0)
+									<button type="button" class="btn btn-success" id="add-row">+ Add More</button>
+								@endif
+								</div>
+							</div>
+						@empty
+							<div class="row repeater-item mb-2">
+								<div class="col-md-5">
+									<select name="production[0][production_type]" class="form-control" required>
+										<option value="">Select Production Type</option>
+										@foreach($productionTypes as $type)
+											<option value="{{ $type }}">{{ $type }}</option>
+										@endforeach
+									</select>
+								</div>
+
+								<div class="col-md-4">
+									<input type="number"
+										name="production[0][order_number]"
+										class="form-control"
+										placeholder="Order Number"
+										required>
+								</div>
+
+								<div class="col-md-3">
+									<button type="button" class="btn btn-success" id="add-row">+ Add More</button>
+								</div>
+							</div>
+						@endforelse
+					</div>
+
 				</div>
 				<!-- /.box-body -->
-				<div class="box-footer">
+				<div class="box-footer mt-4">
 					<button type="submit" class="btn btn-primary">Update Task Name</button>
 				</div>
 			</form>
@@ -74,4 +135,42 @@
 @endsection
 
 @push('scripts')
+<script>
+    let index = {{ $data->productionTypes->count() ?? 1 }};
+
+    document.getElementById('add-row').addEventListener('click', function () {
+        let html = `
+        <div class="row repeater-item mb-2">
+            <div class="col-md-5">
+                <select name="production[${index}][production_type]" class="form-control" required>
+                    <option value="">Select Production Type</option>
+                    @foreach($productionTypes as $type)
+                        <option value="{{ $type }}">{{ $type }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <input type="number"
+                       name="production[${index}][order_number]"
+                       class="form-control"
+                       placeholder="Order Number"
+                       required>
+            </div>
+
+            <div class="col-md-3">
+                <button type="button" class="btn btn-danger remove-row">Remove</button>
+            </div>
+        </div>
+        `;
+        document.getElementById('repeater').insertAdjacentHTML('beforeend', html);
+        index++;
+    });
+
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-row')) {
+            e.target.closest('.repeater-item').remove();
+        }
+    });
+</script>
 @endpush

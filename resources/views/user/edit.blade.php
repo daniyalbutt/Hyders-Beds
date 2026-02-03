@@ -70,11 +70,17 @@
 							</div>
 						</div>
 						<div class="col-md-12" id="production-tasks" style="display: {{ $data->hasRole('production') ? 'block' : 'none' }};">
-							<label class="form-label">Assign Tasks</label>
+							<label class="form-label d-flex align-items-center">
+								Assign Tasks
+								<span style="margin-left: 20px;display: flex;align-items: center;gap: 2px;">
+									<input type="checkbox" id="check_all_tasks"> 
+									<label for="check_all_tasks" style="margin-left: 5px;font-weight: normal;margin-bottom: 0;">Check All</label>
+								</span>
+							</label>
 							<div class="form-group">
 								@foreach($tasks as $task)
 									<div class="form-check">
-										<input class="form-check-input" type="checkbox" name="tasks[]" value="{{ $task->id }}" id="task_{{ $task->id }}"
+										<input class="form-check-input task-checkbox" type="checkbox" name="tasks[]" value="{{ $task->id }}" id="task_{{ $task->id }}"
 											{{ in_array($task->id, $userTasks) ? 'checked' : '' }}>
 										<label class="form-check-label" for="task_{{ $task->id }}">
 											{{ ucwords(str_replace('_', ' ', $task->name)) }}
@@ -105,6 +111,9 @@
                 $('#production-tasks').hide();
                 $('#production-tasks input[type=checkbox]').prop('checked', false);
             }
+        });
+		$('#check_all_tasks').on('change', function() {
+            $('.task-checkbox').prop('checked', $(this).is(':checked'));
         });
     });
 </script>

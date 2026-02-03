@@ -19,4 +19,9 @@ class TaskName extends Model
     {
         return $this->belongsToMany(User::class, 'task_user');
     }
+
+    public function productionTypes()
+    {
+        return $this->hasMany(TaskNameProductionType::class);
+    }
 }

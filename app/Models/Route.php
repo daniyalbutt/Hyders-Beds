@@ -26,4 +26,9 @@ class Route extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function isCompleted()
+    {
+        return $this->orders->every(fn ($order) => $order->isCompleted());
+    }
+
 }

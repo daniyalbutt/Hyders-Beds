@@ -41,4 +41,38 @@ class OrderItem extends Model
     public function product(){
         return $this->belongsTo(Product::class);
     }
+
+    public function taskProgress()
+    {
+        return $this->hasMany(OrderTaskProgress::class, 'order_item_id');
+    }
+
+
+    public function isCompleted()
+    {
+        // Must have tasks first
+        if ($this->taskProgress()->count() === 0) {
+            return false;
+        }
+
+        // No unfinished tasks
+        return $this->taskProgress()
+            ->whereNull('completed_at')
+            ->doesntExist();
+    }
+
+
+    public function currentCompletedTask()
+    {
+        return $this->taskProgress
+            ->filter(fn ($progress) => $progress->task)
+            ->sortByDesc(fn ($progress) => $progress->task->order)
+            ->first();
+    }
+
+    public function getCurrentTaskAttribute()
+    {
+        return $this->currentCompletedTask();
+    }
+
 }

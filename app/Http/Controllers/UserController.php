@@ -69,7 +69,7 @@ class UserController extends Controller
         $data->save();
         $data->assignRole($request->role);
         if ($request->role === 'production' && $request->tasks) {
-            $user->tasks()->sync($request->tasks);
+            $data->tasks()->sync($request->tasks);
         }
         return redirect()->back()->with('success', 'User Created Successfully');
     }
@@ -123,9 +123,9 @@ class UserController extends Controller
         $data->save();
         $data->syncRoles($request->role);
         if ($request->role === 'production') {
-            $user->tasks()->sync($request->tasks ?? []);
+            $data->tasks()->sync($request->tasks ?? []);
         } else {
-            $user->tasks()->detach();
+            $data->tasks()->detach();
         }
         return redirect()->back()->with('success', 'User Updated Successfully');
     }

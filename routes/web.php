@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TaskNameController;
+use App\Http\Controllers\ProcessController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -57,5 +58,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('routes/remove-order', [RouteController::class, 'removeOrder'])->name('routes.removeOrder');
     Route::resource('task-names', TaskNameController::class);
     Route::post('/task-names/reorder', [TaskNameController::class, 'reorder'])->name('task-names.reorder');
+    Route::resource('process', ProcessController::class);
+    Route::post('/process/task-complete', [ProcessController::class, 'completeTask'])->name('process.task.complete');
 
 });

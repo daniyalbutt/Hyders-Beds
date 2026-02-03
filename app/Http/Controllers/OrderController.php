@@ -33,7 +33,11 @@ class OrderController extends Controller
      */
     public function create()
     {
-        $salesPersons = User::role('Sales Person')->get();
+        if (!\Spatie\Permission\Models\Role::where('name', 'Sales Person')->exists()) {
+            $salesPersons = null;
+        } else {
+            $salesPersons = User::role('Sales Person')->get();
+        }
         return view('order.create', compact('salesPersons'));
     }
 
@@ -79,7 +83,11 @@ class OrderController extends Controller
         if($data->status == 1){
             return redirect()->route('orders.index');
         }
-        $salesPersons = User::role('Sales Person')->get();
+        if (!\Spatie\Permission\Models\Role::where('name', 'Sales Person')->exists()) {
+            $salesPersons = null;
+        } else {
+            $salesPersons = User::role('Sales Person')->get();
+        }
         $products = Product::where('status', 0)->where('addon', 0)
             ->selectRaw('MIN(id) as id, product_section')
             ->groupBy('product_section')
