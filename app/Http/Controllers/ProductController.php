@@ -266,4 +266,15 @@ class ProductController extends Controller
         return response()->json($drawers);
     }
 
+    public function getRangesByType($section, $type)
+    {
+        return Product::where('status', 0)
+            ->where('product_section', $section)
+            ->where('production_type', $type)
+            ->select('product_range')
+            ->distinct()
+            ->orderBy('product_range')
+            ->pluck('product_range');
+    }
+
 }

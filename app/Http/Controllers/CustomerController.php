@@ -23,9 +23,32 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Customer::where('status', 0)->orderBy('id', 'desc')->paginate(20);
+        $query = Customer::where('status', 0);
+ 
+        // Search by name
+        if ($request->has('name') && !empty($request->get('name'))) {
+            $query->where('name', 'like', '%' . $request->get('name') . '%');
+        }
+ 
+        // Search by email
+        if ($request->has('email') && !empty($request->get('email'))) {
+            $query->where('email', 'like', '%' . $request->get('email') . '%');
+        }
+ 
+        // Search by telephone
+        if ($request->has('telephone') && !empty($request->get('telephone'))) {
+            $query->where('telephone', 'like', '%' . $request->get('telephone') . '%');
+        }
+ 
+        // Search by address
+        if ($request->has('address') && !empty($request->get('address'))) {
+            $query->where('address', 'like', '%' . $request->get('address') . '%');
+        }
+ 
+        $data = $query->orderBy('id', 'desc')->paginate(20);
+ 
         return view('customer.index', compact('data'));
     }
 
@@ -300,7 +323,7 @@ class CustomerController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->get('query');
+        $query = $request->get('q'); // Change from 'query' to 'q'
         $customers = Customer::where(function ($q) use ($query) {
             $q->where('name', 'like', "%{$query}%")
                 ->orWhere('email', 'like', "%{$query}%");
@@ -308,6 +331,7 @@ class CustomerController extends Controller
         ->where('status', 0)
         ->limit(10)
         ->get();
+        
         $formatted = [];
         foreach ($customers as $customer) {
             $formatted[] = [

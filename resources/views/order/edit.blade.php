@@ -408,54 +408,58 @@
 		$(document).on('click', '.section-btn', function(){
 			let section = $(this).data('section');
 			updateBreadcrumb([section]);
-			let url = "{{ route('product.ranges', ':section') }}".replace(':section', section);
+			let url = "{{ route('product.types', ':section') }}".replace(':section', section);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),
-				placeholder: $('.search-global').attr('Search Ranges')
+				placeholder: $('.search-global').attr('placeholder')
 			});
 			$('#backBtn').removeClass('d-none');
 			showLoader();
 			$.get(url, function(data) {
-				let html = '<h6>Ranges in <b>'+section+'</b></h6><ul class="product-section">';
-				data.forEach(function(range){
-					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-range="'+encodeURIComponent(range)+'">'+range+'</a></li>';
+				let html = '<h6>Types in <b>'+section+'</b></h6><ul class="product-section">';
+				data.forEach(function(type){
+					html += '<li><a class="btn btn-success type-btn" href="javascript:;" data-section="'+section+'" data-type="'+encodeURIComponent(type)+'">'+type+'</a></li>';
 				});
 				html += '</ul>';
 				$('#drilldownContent').html(html);
-				$('#dynamic-heading').text('Ranges');
-        		$('.search-global').attr('placeholder', 'Search Ranges');
+				$('#dynamic-heading').text('Production Types');
+				$('.search-global').attr('placeholder', 'Search Types');
 				$('.search-global').val('');
-			}).always(function(){
-				hideLoader();
-			});
+			}).always(function(){ hideLoader(); });
 		});
 
 		$(document).on('click', '.type-btn', function(){
 			let section = $(this).data('section');
-			let type = $(this).data('type');
-			historyStack.push($('#drilldownContent').html());
+			let type = decodeURIComponent($(this).data('type'));
+			updateBreadcrumb([section, type]);
+			historyStack.push({
+				html: $('#drilldownContent').html(),
+				heading: $('#dynamic-heading').text(),
+				placeholder: $('.search-global').attr('placeholder')
+			});
 			showLoader();
-			let url = "{{ route('product.ranges', [':section', ':type']) }}"
-			.replace(':section', section)
-			.replace(':type', type);
-			
+			let url = "{{ route('product.ranges.bytype', [':section', ':type']) }}"
+				.replace(':section', section)
+				.replace(':type', encodeURIComponent(type));
+
 			$.get(url, function(data){
 				let html = '<h6>Ranges in <b>'+type+'</b></h6><ul class="product-section">';
 				data.forEach(function(range){
-					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-type="'+type+'" data-range="'+range+'">'+range+'</a></li>';
+					html += '<li><a class="btn btn-warning range-btn" href="javascript:;" data-section="'+section+'" data-type="'+encodeURIComponent(type)+'" data-range="'+encodeURIComponent(range)+'">'+range+'</a></li>';
 				});
 				html += '</ul>';
 				$('#drilldownContent').html(html);
-			}).always(function(){
-				hideLoader();
-			});
+				$('#dynamic-heading').text('Ranges');
+				$('.search-global').attr('placeholder', 'Search Ranges');
+				$('.search-global').val('');
+			}).always(function(){ hideLoader(); });
 		});
 
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
-			let range   = decodeURIComponent($(this).data('range'));
-			updateBreadcrumb([section, range]);
+			let type = decodeURIComponent($(this).data('type') || '');
+			updateBreadcrumb(type ? [section, type, range] : [section, range]);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),

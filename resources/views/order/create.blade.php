@@ -148,7 +148,7 @@
 				delay: 250,
 				data: function(params) {
 					return {
-						q: params.term
+						q: params.term  // Change from 'query' to 'q'
 					};
 				},
 				processResults: function(data) {
@@ -180,9 +180,6 @@
 			$('#address-select').append(new Option("Collection", "collection", false, false));
 			$('#address-select').trigger('change');
 		});
-
-
-
 	});
 </script>
 @endpush

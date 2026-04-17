@@ -386,3 +386,11 @@ div#production-tasks .form-group {
 div#production-tasks .form-group .form-check {
     margin-right: 35px;
 }
+
+.search-form .form-control {
+    width: 100%;
+}
+
+.search-form .form-group {
+    width: 15%;
+}

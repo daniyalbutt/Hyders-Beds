@@ -24,9 +24,23 @@
 </div>
 <div class="card mb-4">
     <div class="card-body p-3">
-        <form class="form-inline justify-content-end" method="get" action="{{ route('customers.index') }}">
-            <label class="sr-only" for="inlineFormInputName2">Name</label>
-			<input type="text" name="name" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Name" value="{{ Request::get('name') }}">
+        <form class="form-inline search-form" method="get" action="{{ route('customers.index') }}">
+            <div class="form-group">
+                <label class="sr-only" for="inlineFormInputName2">Name</label>
+			    <input type="text" name="name" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Name" value="{{ Request::get('name') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Email</label>
+			    <input type="email" name="email" class="form-control mb-0 mr-sm-2" placeholder="Email" value="{{ Request::get('email') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Telephone</label>
+			    <input type="text" name="telephone" class="form-control mb-0 mr-sm-2" placeholder="Telephone" value="{{ Request::get('telephone') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Address</label>
+			    <input type="text" name="address" class="form-control mb-0 mr-sm-2" placeholder="Address" value="{{ Request::get('address') }}">
+            </div>
             <button type="submit" class="btn btn-sm btn-outline-primary mb-0">Search</button>
         </form>
     </div>

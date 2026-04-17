@@ -24,9 +24,23 @@
 </div>
 <div class="card mb-4">
     <div class="card-body p-3">
-        <form class="form-inline justify-content-end" method="get" action="{{ route('orders.index') }}">
-            <label class="sr-only" for="inlineFormInputName2">Name</label>
-			<input type="text" name="name" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Name" value="{{ Request::get('name') }}">
+        <form class="form-inline search-form" method="get" action="{{ route('orders.index') }}">
+            <div class="form-group">
+                <label class="sr-only" for="inlineFormInputName2">Name</label>
+                <input type="text" name="name" class="form-control mb-0 mr-sm-2" id="inlineFormInputName2" placeholder="Name" value="{{ Request::get('name') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Order Date</label>
+                <input type="text" name="order_date" class="form-control mb-0 mr-sm-2" placeholder="Order Date" value="{{ Request::get('order_date') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Customer Order Reference</label>
+                <input type="text" name="order_reference" class="form-control mb-0 mr-sm-2" placeholder="Customer Order Reference" value="{{ Request::get('order_reference') }}">
+            </div>
+            <div class="form-group">
+                <label class="sr-only">Required Date</label>
+                <input type="text" name="required_date" class="form-control mb-0 mr-sm-2" placeholder="Required Date" value="{{ Request::get('required_date') }}">
+            </div>
             <button type="submit" class="btn btn-sm btn-outline-primary mb-0">Search</button>
         </form>
     </div>

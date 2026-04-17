@@ -22,9 +22,68 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $data = Order::where('status', 0)->orderBy('id', 'desc')->paginate(20);
+        $query = Order::where('status', 0);
+
+        // Search by name
+        if ($request->has('name') && !empty($request->get('name'))) {
+            $query->where('name', 'like', '%' . $request->get('name') . '%');
+        }
+
+        // Search by order_date (supports year, month, or full date)
+        if ($request->has('order_date') && !empty($request->get('order_date'))) {
+            $dateInput = $request->get('order_date');
+            
+            // Check if it's just a year (4 digits)
+            if (preg_match('/^\d{4}$/', $dateInput)) {
+                $query->whereYear('order_date', '=', $dateInput);
+            }
+            // Check if it's just a month (1-2 digits)
+            elseif (preg_match('/^\d{1,2}$/', $dateInput)) {
+                $query->whereMonth('order_date', '=', $dateInput);
+            }
+            // Try to parse as a full date
+            else {
+                try {
+                    $orderDate = \Carbon\Carbon::createFromFormat('m/d/Y', $dateInput)->format('Y-m-d');
+                    $query->whereDate('order_date', '=', $orderDate);
+                } catch (\Exception $e) {
+                    // Invalid date format, skip this filter
+                }
+            }
+        }
+
+        // Search by order_reference
+        if ($request->has('order_reference') && !empty($request->get('order_reference'))) {
+            $query->where('order_reference', 'like', '%' . $request->get('order_reference') . '%');
+        }
+
+        // Search by required_date (supports year, month, or full date)
+        if ($request->has('required_date') && !empty($request->get('required_date'))) {
+            $dateInput = $request->get('required_date');
+            
+            // Check if it's just a year (4 digits)
+            if (preg_match('/^\d{4}$/', $dateInput)) {
+                $query->whereYear('required_date', '=', $dateInput);
+            }
+            // Check if it's just a month (1-2 digits)
+            elseif (preg_match('/^\d{1,2}$/', $dateInput)) {
+                $query->whereMonth('required_date', '=', $dateInput);
+            }
+            // Try to parse as a full date
+            else {
+                try {
+                    $requiredDate = \Carbon\Carbon::createFromFormat('m/d/Y', $dateInput)->format('Y-m-d');
+                    $query->whereDate('required_date', '=', $requiredDate);
+                } catch (\Exception $e) {
+                    // Invalid date format, skip this filter
+                }
+            }
+        }
+
+        $data = $query->orderBy('id', 'desc')->paginate(20);
+
         return view('order.index', compact('data'));
     }
 
