@@ -459,6 +459,7 @@
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
 			let type = decodeURIComponent($(this).data('type') || '');
+			let range   = decodeURIComponent($(this).data('range') || '');
 			updateBreadcrumb(type ? [section, type, range] : [section, range]);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
