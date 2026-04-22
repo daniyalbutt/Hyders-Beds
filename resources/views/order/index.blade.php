@@ -14,6 +14,7 @@
 	<div class="col-lg-6">
 		<div class="text-right">
 			@can('create order')
+            <a href="{{ route('orders.import') }}" class="btn btn-outline-primary">Import Orders</a>
 			<a href="{{ route('orders.create') }}" class="btn btn-primary">Create Orders</a>
 			@endcan
 		</div>

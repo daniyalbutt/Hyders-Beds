@@ -39,6 +39,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/ranges/{section}', [ProductController::class, 'getRanges'])->name('product.ranges');
     Route::get('/products/list/{section}/{range}', [ProductController::class, 'getProducts'])->name('product.list');
     Route::get('/products/ranges/{section}/{type}', [ProductController::class, 'getRangesByType'])->name('product.ranges.bytype');
+    Route::get('orders/import', [OrderController::class, 'import'])->name('orders.import');
+    Route::post('orders/import', [OrderController::class, 'importOrders'])->name('orders.import.store');
+    Route::get('orders/sample-csv', [OrderController::class, 'sampleCsv'])->name('orders.sample-csv'); 
     Route::resource('orders', OrderController::class);
     Route::post('/orders/{order}/items', [OrderController::class, 'addItem'])->name('orders.addItem');
     Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])->name('orders.removeItem');

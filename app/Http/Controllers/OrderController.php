@@ -575,6 +575,168 @@ class OrderController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function import()
+    {
+        return view('order.import');
+    }
+ 
+    /**
+     * Handle the uploaded CSV / Excel file.
+     * Route: POST /orders/import   name: orders.import.store
+     */
+    public function importOrders(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,xlsx,xls|max:5120',
+        ]);
+ 
+        $importer = new OrdersImport();
+ 
+        try {
+            Excel::import($importer, $request->file('file'));
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $messages = collect($failures)->map(fn($f) => "Row {$f->row()}: " . implode(', ', $f->errors()));
+            return redirect()->back()
+                ->with('import_errors', $messages->toArray())
+                ->with('error', 'Import finished with validation errors.');
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('error', 'Import failed: ' . $e->getMessage());
+        }
+ 
+        $feedback = "Successfully imported {$importer->imported} order(s).";
+ 
+        if (! empty($importer->createdCustomers)) {
+            $feedback .= ' New customers created: ' . implode(', ', $importer->createdCustomers) . '.';
+        }
+ 
+        if (! empty($importer->errors)) {
+            return redirect()->route('orders.import')
+                ->with('success', $feedback)
+                ->with('import_errors', $importer->errors);
+        }
+ 
+        return redirect()->route('orders.index')->with('success', $feedback);
+    }
+ 
+    /**
+     * Stream a sample CSV file so the client knows the expected format.
+     * Route: GET /orders/sample-csv   name: orders.sample.csv
+     */
+    public function sampleCsv()
+    {
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="sample_orders_import.csv"',
+            'Pragma'              => 'no-cache',
+            'Cache-Control'       => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires'             => '0',
+        ];
+ 
+        $rows = [
+            // Header row
+            [
+                'customer_name',
+                'customer_email',
+                'delivery_address',
+                'order_date',
+                'order_reference',
+                'order_type',
+                'required_date',
+                'product_code',
+                'description',
+                'price',
+                'quantity',
+                'fabric_name',
+                'fabric_price',
+                'drawer_name',
+                'drawer_price',
+            ],
+            // Order 1 – item 1 (with fabric)
+            [
+                'John Smith',
+                'john@example.com',
+                '12 High Street | Leeds | LS1 1AA',
+                '2025-09-01',
+                'REF-001',
+                'order',
+                '2025-09-15',
+                'GELS2610000',
+                "2'6 Haven Gel Softer 1000 Pocket MQ Matt",
+                '210.00',
+                '1',
+                'GENESIS CREAM',
+                '0.00',
+                '',
+                '0.00',
+            ],
+            // Order 1 – item 2 (with drawer, same reference = same order)
+            [
+                'John Smith',
+                'john@example.com',
+                '12 High Street | Leeds | LS1 1AA',
+                '2025-09-01',
+                'REF-001',
+                'order',
+                '2025-09-15',
+                'CHESTDHB26BEDSON',
+                "2'6 Chesterfield Standard Headboard",
+                '45.00',
+                '2',
+                '',
+                '0.00',
+                'Continental Drawer',
+                '19.50',
+            ],
+            // Order 2 – no fabric or drawer
+            [
+                'John Smith',
+                'john@example.com',
+                '5 Park Lane | Bradford | BD1 2AB',
+                '2025-09-03',
+                'REF-002',
+                'order',
+                '2025-09-20',
+                'PURITY2612000',
+                'Purity 12000 Mattress',
+                '520.00',
+                '1',
+                '',
+                '0.00',
+                '',
+                '0.00',
+            ],
+            // Order 3 – both fabric and drawer
+            [
+                'Jane Doe',
+                'jane@example.com',
+                '99 New Road | Bradford | BD5 7PQ',
+                '2025-09-05',
+                'REF-003',
+                'sample',
+                '',
+                'WOOLSUBLIME6020000',
+                "6'0 Spring King Wool Sublime 2000 Pillow Top",
+                '251.00',
+                '1',
+                'LUXURY VELVET',
+                '25.00',
+                'Oak Drawer',
+                '35.00',
+            ],
+        ];
+ 
+        $callback = function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+            fclose($handle);
+        };
+ 
+        return response()->stream($callback, 200, $headers);
+    }
+
 
 
 }
