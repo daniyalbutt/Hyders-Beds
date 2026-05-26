@@ -520,7 +520,7 @@
     		cachedProduct = null;
 		});
 
-		const fabricRanges = ["base", "bed frame", "headboard", "headboard design", "ottoman"];
+		const fabricRanges = ["base", "divan base", "bed frame", "headboard", "headboard design", "ottoman"];
 		let cachedProduct = null;
 
 		$(document).on('click', '.product-btn', function(){
@@ -1195,7 +1195,7 @@
 				});
 
 				html += '</ul>';
-				if (production === "base") {
+				if (production === "base" || production === "divan base") {
 					loadDrawers(section, range, productId, html);
 				} else {
 					$('#drilldownContent').html(html);

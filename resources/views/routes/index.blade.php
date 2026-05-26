@@ -85,6 +85,7 @@
                                 <th class="pl-0">Order ID</th>
                                 <th>Customer</th>
                                 <th>Address</th>
+                                <th>Production</th>
                                 <th class="text-right">Action</th>
                             </tr>
                         </thead>
@@ -95,6 +96,19 @@
                                 <td class="pl-0">{{ $order->id }}</td>
                                 <td>{{ $order->get_customer->name ?? '' }}</td>
                                 <td>{{ $order->address ?? '' }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2 mr-5">
+                                        <label class="custom-toggle mb-0">
+                                            <input type="checkbox"
+                                                class="order-route-toggle"
+                                                data-order-id="{{ $order->id }}"
+                                                {{ $order->send_to_production ? 'checked' : '' }} />
+                                            <span class="custom-toggle-slider"></span>
+                                        </label>
+
+                                        <span class="ml-2">Send to Production</span>
+                                    </div>
+                                </td>
                                 <td class="text-right">
                                     @can('edit order')
                                     <a href="{{ route('orders.edit', $order->id) }}" class="btn btn-primary shadow btn-xs sharp me-1 mr-2"><i class="glyph-icon iconsminds-file-edit"></i></a>
@@ -107,7 +121,7 @@
                             @endforeach
                         </tbody>
                         <tfoot style="background-color: #e5e5e5;">
-                            <tr><th colspan="5"></th></tr>
+                            <tr><th colspan="6"></th></tr>
                         </tfoot>
                     </table>
                 </td>
@@ -242,6 +256,23 @@ $(document).ready(function(){
     });
 
     // Delete route/order actions remain same...
+
+    $('.order-route-toggle').on('change', function() {
+        let orderId = $(this).data('order-id');
+        let value = $(this).is(':checked') ? 1 : 0;
+
+        $.ajax({
+            url: "/orders/" + orderId + "/production-toggle",
+            method: "POST",
+            data: {
+                _token: "{{ csrf_token() }}",
+                send_to_production: value
+            },
+            success: function() {
+                console.log("Updated successfully");
+            }
+        });
+    });
 });
 </script>
 @endpush

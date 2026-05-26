@@ -37,7 +37,7 @@
                 <h5 class="mb-1">{{ $route->name }}</h5>
                 <p class="text-muted mb-0">
                     <i class="simple-icon-clock"></i>
-                    {{ $route->start_date }} {{ $route->start_time }}
+                    {{ $route->start_time }}
                 </p>
             </div>
 

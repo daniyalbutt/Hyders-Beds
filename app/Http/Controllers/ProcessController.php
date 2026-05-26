@@ -22,19 +22,18 @@ class ProcessController extends Controller
     public function index(Request $request)
     {
         $data = Route::whereHas('orders', function ($q) {
-            $q->sendToProduction();
-        })
-        ->with([
-            'orders' => function ($q) {
-                $q->sendToProduction()
-                ->orderBy('order_date', 'asc');
-            },
-            'orders.items.taskProgress.task'
-        ])
-        ->orderBy('start_date', 'asc')
-        ->orderBy('start_time', 'asc')
-        ->get();
-
+                $q->sendToProduction();
+            })
+            ->with([
+                'orders' => function ($q) {
+                    $q->sendToProduction()
+                    ->orderBy('order_date', 'asc');
+                },
+                'orders.items.taskProgress.task'
+            ])
+            ->orderByDesc('start_date')
+            ->orderByDesc('start_time')
+            ->get();
 
         return view('process.index', compact('data'));
     }
