@@ -15,27 +15,39 @@
                         <h6 class="mb-4">Login</h6>
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
-                            <label class="form-group has-float-label mb-4">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+
+                            {{-- Email --}}
+                            <label class="form-group has-float-label mb-1">
+                                <input id="email" type="email"
+                                    class="form-control @error('email') is-invalid @enderror"
+                                    name="email" value="{{ old('email') }}"
+                                    required autocomplete="email" autofocus>
                                 <span>E-mail</span>
+                                @error('email')
+                                    <div class="invalid-feedback d-block">
+                                        <strong>{{ $message }}</strong>
+                                    </div>
+                                @enderror
                             </label>
-                            @error('email')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                            <label class="form-group has-float-label mb-4">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                            <div class="mb-4"></div>
+
+                            {{-- Password --}}
+                            <label class="form-group has-float-label mb-1 position-relative">
+                                <input id="password" type="password"
+                                    class="form-control @error('password') is-invalid @enderror"
+                                    name="password" required autocomplete="current-password">
                                 <span>Password</span>
-                                <i id="togglePassword" 
-                                   class="fa fa-eye position-absolute" 
+                                <i id="togglePassword"
+                                   class="fa fa-eye position-absolute"
                                    style="top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                                @error('password')
+                                    <div class="invalid-feedback d-block">
+                                        <strong>{{ $message }}</strong>
+                                    </div>
+                                @enderror
                             </label>
-                            @error('password')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
+                            <div class="mb-4"></div>
+
                             <div class="d-flex justify-content-between align-items-center">
                                 <button class="btn btn-primary btn-lg btn-shadow" type="submit">LOGIN</button>
                             </div>
@@ -51,8 +63,6 @@
         const passwordInput = document.getElementById('password');
         const type = passwordInput.type === 'password' ? 'text' : 'password';
         passwordInput.type = type;
-
-        // toggle eye / eye-slash icon
         this.classList.toggle('fa-eye');
         this.classList.toggle('fa-eye-slash');
     });

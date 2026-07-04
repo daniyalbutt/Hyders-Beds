@@ -41,7 +41,7 @@
 					<div class="row">
 						<div class="col-md-3">
 							<div class="form-group mb-3">
-								<label class="form-label">Name <strong>*</strong></label>
+								<label class="form-label">Business Name <strong>*</strong></label>
 								<input type="text" class="form-control" name="name" required>
 							</div>
 						</div>

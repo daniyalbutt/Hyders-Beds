@@ -41,7 +41,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/ranges/{section}/{type}', [ProductController::class, 'getRangesByType'])->name('product.ranges.bytype');
     Route::get('orders/import', [OrderController::class, 'import'])->name('orders.import');
     Route::post('orders/import', [OrderController::class, 'importOrders'])->name('orders.import.store');
-    Route::get('orders/sample-csv', [OrderController::class, 'sampleCsv'])->name('orders.sample-csv'); 
+    Route::get('orders/sample-csv', [OrderController::class, 'sampleCsv'])->name('orders.sample-csv');
+    Route::post('orders/{order}/items/{item}/update-fabric', [OrderController::class, 'updateFabric'])->name('orders.items.updateFabric');
+    Route::post('orders/{order}/items/{item}/update-drawer', [OrderController::class, 'updateDrawer'])->name('orders.items.updateDrawer');
+    Route::post('orders/{order}/items/{item}/remove-fabric', [OrderController::class, 'removeFabric'])->name('orders.items.removeFabric');
+    Route::post('orders/{order}/items/{item}/remove-drawer', [OrderController::class, 'removeDrawer'])->name('orders.items.removeDrawer');
     Route::resource('orders', OrderController::class);
     Route::post('/orders/{order}/items', [OrderController::class, 'addItem'])->name('orders.addItem');
     Route::delete('/orders/{order}/items/{item}', [OrderController::class, 'removeItem'])->name('orders.removeItem');

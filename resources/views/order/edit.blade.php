@@ -211,8 +211,9 @@
 												<td class="align-middle">—</td>
 												<td class="align-middle">
 													<div class="d-flex">
-														<button type="button" class="btn btn-danger shadow btn-xs sharp remove-fabric" data-id="{{ $item->id }}">
-															<i class="glyph-icon simple-icon-trash"></i>
+														<button type="button" class="btn btn-warning shadow btn-xs sharp mr-1 change-fabric" 
+															data-id="{{ $item->id }}" data-current="{{ $item->fabric_name }}">
+															<i class="glyph-icon simple-icon-pencil"></i>
 														</button>
 													</div>
 												</td>
@@ -229,8 +230,9 @@
 												<td class="align-middle">—</td>
 												<td class="align-middle">
 													<div class="d-flex">
-														<button type="button" class="btn btn-danger shadow btn-xs sharp remove-drawer" data-id="{{ $item->id }}">
-															<i class="glyph-icon simple-icon-trash"></i>
+														<button type="button" class="btn btn-warning shadow btn-xs sharp mr-1 change-drawer" 
+															data-id="{{ $item->id }}" data-current="{{ $item->drawer_name }}">
+															<i class="glyph-icon simple-icon-pencil"></i>
 														</button>
 													</div>
 												</td>
@@ -391,6 +393,40 @@
         </div>
     </div>
 </div>
+
+{{-- Change Fabric Modal --}}
+<div class="modal fade" id="changeFabricModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Fabric</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="changeFabricItemId">
+                <input type="text" class="form-control mb-3" id="fabricSearchInput" placeholder="Search fabrics...">
+                <div id="fabricOptionsList" class="row" style="max-height:400px;overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Change Drawer Modal --}}
+<div class="modal fade" id="changeDrawerModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Change Drawer</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="changeDrawerItemId">
+                <input type="text" class="form-control mb-3" id="drawerSearchInput" placeholder="Search drawers...">
+                <div id="drawerOptionsList" class="row" style="max-height:400px;overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -412,7 +448,8 @@
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),
-				placeholder: $('.search-global').attr('placeholder')
+				placeholder: $('.search-global').attr('placeholder'),
+				breadcrumb: $('#breadcrumb .breadcrumb').html()
 			});
 			$('#backBtn').removeClass('d-none');
 			showLoader();
@@ -436,7 +473,8 @@
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),
-				placeholder: $('.search-global').attr('placeholder')
+				placeholder: $('.search-global').attr('placeholder'),
+				breadcrumb: $('#breadcrumb .breadcrumb').html()
 			});
 			showLoader();
 			let url = "{{ route('product.ranges.bytype', [':section', ':type']) }}"
@@ -459,12 +497,13 @@
 		$(document).on('click', '.range-btn', function(){
 			let section = $(this).data('section');
 			let type = decodeURIComponent($(this).data('type') || '');
-			let range   = decodeURIComponent($(this).data('range') || '');
+			let range = decodeURIComponent($(this).data('range') || '');
 			updateBreadcrumb(type ? [section, type, range] : [section, range]);
 			historyStack.push({
 				html: $('#drilldownContent').html(),
 				heading: $('#dynamic-heading').text(),
-				placeholder: $('.search-global').attr('placeholder')
+				placeholder: $('.search-global').attr('placeholder'),
+				breadcrumb: $('#breadcrumb .breadcrumb').html()
 			});
 			showLoader();
 			let url = "{{ route('product.list', [':section', ':range']) }}"
@@ -478,7 +517,7 @@
 					let priceHtml = p.sale_price ? `<h5>${p.sale_price}</h5>` : '';
 					html += `
 					<li>
-						<a href="javascript:;" class="btn btn-info product-btn" data-range="${p.product_range}" data-section="${p.product_section}" data-production="${p.production_type}">
+						<a href="javascript:;" class="btn btn-info product-btn" data-range="${p.product_range}" data-section="${p.product_section}" data-production="${p.production_type}" data-type="${encodeURIComponent(type)}">
 							${codeHtml}
 							${descHtml}
 							${priceHtml}
@@ -525,14 +564,15 @@
 
 		$(document).on('click', '.product-btn', function(){
 			let section = $(this).data('section');
-			let range   = decodeURIComponent($(this).data('range')).toLowerCase();
+			let range = decodeURIComponent($(this).data('range'));
+			let type       = decodeURIComponent($(this).data('type') || '');
 			let productId = $(this).find('.add-to-order').data('product');
 			// let product = $(this).data('id');
 			let production = ($(this).data('production') || "").toLowerCase();
 			let desc = $(this).find('.add-to-order').data('desc');
     		let code = $(this).find('.add-to-order').data('code');
 			let price = $(this).find('.add-to-order').data('price');
-			updateBreadcrumb([section, range, desc]);
+			updateBreadcrumb(type ? [section, type, range, desc] : [section, range, desc]);
 			let productTitle = `${code} - ${desc}`;
 			let headerHtml = `
 				<div class="selected-product">
@@ -655,7 +695,6 @@
 			$('.drawer-list').show();
 		});
 
-
 		$(document).on('click', '.drawer-btn', function () {
 			let $btn   = $(this);
 			let drawer = decodeURIComponent($btn.data('drawer'));
@@ -706,8 +745,6 @@
 			drawerList.before(drawerInfo);
 			drawerList.hide();
 		});
-
-
 
 		$(document).on('click', '.selected-fabric-info', function () {
 			$('.fabric-list').toggle();
@@ -808,8 +845,8 @@
 								<td class="align-middle">—</td>
 								<td class="align-middle">
 									<div class="d-flex">
-										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-fabric" data-id="${item.id}">
-											<i class="glyph-icon simple-icon-trash"></i>
+										<button type="button" class="btn btn-warning shadow btn-xs sharp mr-1 change-fabric" data-id="${item.id}" data-current="${item.fabric_name}">
+											<i class="glyph-icon simple-icon-pencil"></i>
 										</button>
 									</div>
 								</td>
@@ -825,8 +862,8 @@
 								<td class="align-middle">—</td>
 								<td class="align-middle">
 									<div class="d-flex">
-										<button type="button" class="btn btn-danger shadow btn-xs sharp remove-drawer" data-id="${item.id}">
-											<i class="glyph-icon simple-icon-trash"></i>
+										<button type="button" class="btn btn-warning shadow btn-xs sharp mr-1 change-drawer" data-id="${item.id}" data-current="${item.drawer_name}">
+											<i class="glyph-icon simple-icon-pencil"></i>
 										</button>
 									</div>
 								</td>
@@ -836,6 +873,21 @@
 						cachedProduct = null;
 					}
 					updateTotals();
+					// ── Clear selection overlays ──
+					$('.selected-product').remove();
+					$('.selected-fabric-info').remove();
+					$('.selected-drawer-info').remove();
+					$('.fabric-qty-form').remove();
+					$('.fabric-btn').removeClass('active');
+					$('.drawer-btn').removeClass('active');
+
+					// ── Clear drilldownContent, show confirmation ──
+					$('#drilldownContent').html(`
+						<div class="alert alert-success">
+							<i class="simple-icon-check mr-1"></i> 
+							<strong>Item added!</strong> Use the ← Back button to add another product.
+						</div>
+					`);
 				}
 			});
 		});
@@ -876,7 +928,15 @@
 									<td class="align-middle">${item.product_code}</td>
 									<td class="align-middle item-desc" contenteditable="true" data-id="${item.id}">${item.description}</td>
 									<td class="align-middle item-price" contenteditable="true" data-id="${item.id}">${parseFloat(item.price).toFixed(2)}</td>
-									<td class="align-middle item-qty">${item.quantity}</td>
+									<td class="align-middle item-qty">
+										<span class="qty-text">${item.quantity}</span>
+										<button type="button" class="btn btn-xs btn-link text-primary edit-qty" 
+												data-id="${item.id}" 
+												data-product="${item.product_id}" 
+												data-qty="${item.quantity}">
+											<i class="glyph-icon simple-icon-pencil"></i>
+										</button>
+									</td>
 									<td class="align-middle item-total">${item.total.toFixed(2)}</td>
 									<td class="align-middle">
 										<div class="d-flex">
@@ -907,6 +967,7 @@
 				method: 'DELETE',
 				data: { _token: '{{ csrf_token() }}' },
 				success: function() {
+					$(`.child-row[data-parent="${itemId}"]`).remove();
 					row.fadeOut(300, function(){
 						$(this).remove();
 						updateTotals();
@@ -1259,7 +1320,214 @@
 			});
 		}
 
+		$(document).on('click', '.breadcrumb-nav', function() {
+			let i = parseInt($(this).data('index'));
+			let targetIndex = i + 1; // historyStack[i+1] holds the HTML for that level
 
+			if (targetIndex >= historyStack.length) return;
+
+			let state = historyStack[targetIndex];
+			$('#drilldownContent').html(state.html);
+			$('#dynamic-heading').text(state.heading);
+			$('.search-global').attr('placeholder', state.placeholder).val('');
+			$('#breadcrumb .breadcrumb').html(state.breadcrumb);
+
+			// Trim the stack back to this level
+			historyStack = historyStack.slice(0, targetIndex);
+
+			if (historyStack.length === 0) {
+				$('#backBtn').addClass('d-none');
+			}
+
+			// Clean up any selection state
+			$('.selected-product').remove();
+			$('.fabric-qty-form').remove();
+			cachedProduct = null;
+		});
+
+		$(document).on('click', '.remove-fabric', function(){
+			let $btn = $(this);
+			let itemId = $btn.data('id');
+			let $childRow = $btn.closest('tr');
+			let $parentRow = $('#orderTable tbody tr[data-code]').filter(function(){
+				return $(this).find('.toggle-children').data('id') == itemId;
+			});
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: "/orders/" + orderId + "/items/" + itemId + "/remove-fabric",
+				method: 'POST',
+				data: { _token: '{{ csrf_token() }}' },
+				success: function(response) {
+					if (response.success) {
+						$childRow.fadeOut(300, function(){ $(this).remove(); });
+						$parentRow.find('.item-total').text(parseFloat(response.new_total).toFixed(2));
+						if ($parentRow.nextAll('.drawer-row[data-parent="'+ itemId +'"]').length === 0) {
+							$parentRow.find('.toggle-children').remove();
+							$parentRow.removeClass('has-children-row');
+						}
+						updateTotals();
+					}
+				}
+			});
+		});
+
+		$(document).on('click', '.remove-drawer', function(){
+			let $btn = $(this);
+			let itemId = $btn.data('id');
+			let $childRow = $btn.closest('tr');
+			let $parentRow = $('#orderTable tbody tr[data-code]').filter(function(){
+				return $(this).find('.toggle-children').data('id') == itemId;
+			});
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: "/orders/" + orderId + "/items/" + itemId + "/remove-drawer",
+				method: 'POST',
+				data: { _token: '{{ csrf_token() }}' },
+				success: function(response) {
+					if (response.success) {
+						$childRow.fadeOut(300, function(){ $(this).remove(); });
+						$parentRow.find('.item-total').text(parseFloat(response.new_total).toFixed(2));
+						if ($parentRow.nextAll('.fabric-row[data-parent="'+ itemId +'"]').length === 0) {
+							$parentRow.find('.toggle-children').remove();
+							$parentRow.removeClass('has-children-row');
+						}
+						updateTotals();
+					}
+				}
+			});
+		});
+
+		// Open change fabric modal
+		$(document).on('click', '.change-fabric', function() {
+			let itemId = $(this).data('id');
+			let current = $(this).data('current');
+			$('#changeFabricItemId').val(itemId);
+			$('#fabricOptionsList').html('<p class="text-muted">Loading...</p>');
+			$('#changeFabricModal').modal('show');
+
+			$.get("{{ route('product.fabrics', ['all', 'all', '0']) }}", function(data) {
+				let html = '';
+				data.forEach(function(f) {
+					let price = parseFloat(f.sale_price || 0).toFixed(2);
+					let active = f.description === current ? 'border-success' : '';
+					html += `
+						<div class="col-md-4 mb-2 fabric-option-item">
+							<a href="javascript:;" class="btn btn-outline-info btn-block text-center select-new-fabric ${active}"
+								data-fabric="${encodeURIComponent(f.description)}"
+								data-price="${price}">
+								<strong>${f.description}</strong><br>
+								<small>${f.product_section}</small><br>
+								<span>£${price}</span>
+							</a>
+						</div>`;
+				});
+				$('#fabricOptionsList').html(html);
+			});
+		});
+
+		// Search within fabric modal
+		$(document).on('keyup', '#fabricSearchInput', function() {
+			let q = $(this).val().toLowerCase();
+			$('.fabric-option-item').each(function() {
+				$(this).toggle($(this).text().toLowerCase().includes(q));
+			});
+		});
+
+		// Select new fabric
+		$(document).on('click', '.select-new-fabric', function() {
+			let itemId   = $('#changeFabricItemId').val();
+			let fabric   = decodeURIComponent($(this).data('fabric'));
+			let price    = parseFloat($(this).data('price'));
+			let orderId  = "{{ $data->id }}";
+
+			$.ajax({
+				url: '/orders/' + orderId + '/items/' + itemId + '/update-fabric',
+				method: 'POST',
+				data: { _token: '{{ csrf_token() }}', fabric_name: fabric, fabric_price: price },
+				success: function(res) {
+					if (res.success) {
+						let $childRow = $(`.fabric-row[data-parent="${itemId}"]`);
+						$childRow.find('td:nth-child(3)').text(fabric);
+						$childRow.find('td:nth-child(4)').text(price.toFixed(2));
+						$childRow.find('.change-fabric').data('current', fabric);
+						// Update parent row total
+						let $parentRow = $(`#orderTable tbody tr`).filter(function() {
+							return $(this).find('.toggle-children').data('id') == itemId;
+						});
+						$parentRow.find('.item-total').text(parseFloat(res.new_total).toFixed(2));
+						updateTotals();
+						$('#changeFabricModal').modal('hide');
+					}
+				}
+			});
+		});
+
+		// Open change drawer modal
+		$(document).on('click', '.change-drawer', function() {
+			let itemId  = $(this).data('id');
+			let current = $(this).data('current');
+			$('#changeDrawerItemId').val(itemId);
+			$('#drawerOptionsList').html('<p class="text-muted">Loading...</p>');
+			$('#changeDrawerModal').modal('show');
+
+			$.get("{{ route('product.drawers', ['all', 'all', '0']) }}", function(data) {
+				let html = '';
+				data.forEach(function(d) {
+					let price = parseFloat(d.sale_price || 0).toFixed(2);
+					let active = d.description === current ? 'border-success' : '';
+					html += `
+						<div class="col-md-4 mb-2 drawer-option-item">
+							<a href="javascript:;" class="btn btn-outline-info btn-block text-center select-new-drawer ${active}"
+								data-drawer="${encodeURIComponent(d.description)}"
+								data-price="${price}">
+								<strong>${d.description}</strong><br>
+								<small>${d.product_section}</small><br>
+								<span>£${price}</span>
+							</a>
+						</div>`;
+				});
+				$('#drawerOptionsList').html(html);
+			});
+		});
+
+		// Search within drawer modal
+		$(document).on('keyup', '#drawerSearchInput', function() {
+			let q = $(this).val().toLowerCase();
+			$('.drawer-option-item').each(function() {
+				$(this).toggle($(this).text().toLowerCase().includes(q));
+			});
+		});
+
+		// Select new drawer
+		$(document).on('click', '.select-new-drawer', function() {
+			let itemId  = $('#changeDrawerItemId').val();
+			let drawer  = decodeURIComponent($(this).data('drawer'));
+			let price   = parseFloat($(this).data('price'));
+			let orderId = "{{ $data->id }}";
+
+			$.ajax({
+				url: '/orders/' + orderId + '/items/' + itemId + '/update-drawer',
+				method: 'POST',
+				data: { _token: '{{ csrf_token() }}', drawer_name: drawer, drawer_price: price },
+				success: function(res) {
+					if (res.success) {
+						let $childRow = $(`.drawer-row[data-parent="${itemId}"]`);
+						$childRow.find('td:nth-child(3)').text(drawer);
+						$childRow.find('td:nth-child(4)').text(price.toFixed(2));
+						$childRow.find('.change-drawer').data('current', drawer);
+						let $parentRow = $(`#orderTable tbody tr`).filter(function() {
+							return $(this).find('.toggle-children').data('id') == itemId;
+						});
+						$parentRow.find('.item-total').text(parseFloat(res.new_total).toFixed(2));
+						updateTotals();
+						$('#changeDrawerModal').modal('hide');
+					}
+				}
+			});
+		});
+		
 	});
 
 	$(document).off('input.drawer-search-input').on('input.fabricSearch', '.fabric-search-input', function () {
@@ -1345,7 +1613,7 @@
 			if (i === parts.length - 1) {
 				html += `<li class="breadcrumb-item active" aria-current="page">${part}</li>`;
 			} else {
-				html += `<li class="breadcrumb-item">${part}</li>`;
+				html += `<li class="breadcrumb-item"><a href="javascript:;" class="breadcrumb-nav" data-index="${i}">${part}</a></li>`;
 			}
 		});
 		$('#breadcrumb .breadcrumb').html(html);

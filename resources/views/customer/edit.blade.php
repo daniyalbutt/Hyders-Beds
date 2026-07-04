@@ -5,8 +5,10 @@
         <h1>Customers</h1>
         <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
             <ol class="breadcrumb pt-0">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Customers</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+				@can('customer')
+                <li class="breadcrumb-item"><a href="{{ route('customers.index') }}">Customers</a></li>
+				@endcan
                 <li class="breadcrumb-item active" aria-current="page">Edit Customer - {{ $data->name }}</li>
             </ol>
         </nav>
@@ -46,6 +48,9 @@
 			</li>
 			<li class="nav-item" role="presentation">
 				<button class="nav-link" id="bank_details-tab" data-toggle="tab" data-target="#bank_details" type="button" role="tab" aria-controls="bank_details" aria-selected="false">Bank Details</button>
+			</li>
+			<li class="nav-item" role="presentation">
+				<button class="nav-link" id="orders-tab" data-toggle="tab" data-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">Orders</button>
 			</li>
 		</ul>
 		<div class="tab-content" id="myTabContent">
@@ -140,6 +145,7 @@
 						<!-- /.box-body -->
 						<div class="box-footer mt-3">
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
@@ -189,6 +195,7 @@
 						<div class="box-footer mt-3">
 						    <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-backdrop="static" data-target="#customerSaleModal">Add New</button>
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
@@ -244,6 +251,7 @@
 						<!-- /.box-body -->
 						<div class="box-footer mt-3">
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
@@ -281,6 +289,7 @@
 						<!-- /.box-body -->
 						<div class="box-footer mt-3">
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
@@ -342,6 +351,7 @@
 						<div class="box-footer mt-3">
 							<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-backdrop="static" data-target="#tradeReferenceModal">Add New</button>
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
@@ -397,9 +407,70 @@
 						<!-- /.box-body -->
 						<div class="box-footer mt-3">
 							<button type="submit" class="btn btn-primary">Update</button>
+							<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 						</div>
 					</form>
 				</div>
+			</div>
+			<div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+				<table class="table table-stripped responsive nowrap">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Order ID</th>
+							<th>Reference</th>
+							<th>Order Date</th>
+							<th>Required Date</th>
+							<th>Delivery Address</th>
+							<th>Total</th>
+							<th>Draft</th>
+							<th>Production</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						@forelse($data->orders as $key => $order)
+						<tr>
+							<td>{{ $loop->iteration }}</td>
+							<td>{{ $order->id }}</td>
+							<td>{{ $order->order_reference }}</td>
+							<td>{{ $order->order_date }}</td>
+							<td>{{ $order->required_date ?? '-' }}</td>
+							<td>{{ $order->address }}</td>
+							<td>£{{ number_format($order->grand_total, 2) }}</td>
+							<td>
+								{!! $order->draft == 0 ? '<span class="badge badge-light">Drafted</span>' : '<span class="badge badge-success">Published</span>' !!}
+							</td>
+							<td>
+								@if($order->send_to_production)
+									<span class="badge badge-success">Yes</span>
+								@else
+									<span class="badge badge-danger">No</span>
+								@endif
+							</td>
+							<td>
+								<div class="d-flex">
+									@can('order')
+									<!-- <a href="{{ route('orders.show', $order->id) }}" class="btn btn-info shadow btn-xs sharp mr-1"><i class="glyph-icon iconsminds-blinklist"></i></a> -->
+									@endcan
+									@can('edit order')
+									<a href="{{ route('orders.edit', $order->id) }}" class="btn btn-primary shadow btn-xs sharp mr-1"><i class="glyph-icon iconsminds-file-edit"></i></a>
+									@endcan
+								</div>
+							</td>
+						</tr>
+						@empty
+						<tr>
+							<td colspan="10" class="text-center text-muted">No orders found for this customer.</td>
+						</tr>
+						@endforelse
+					</tbody>
+				</table>
+				@can('create order')
+				<div class="mt-3">
+					<a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm">Create New Order</a>
+				</div>
+				@endcan
 			</div>
 		</div>
 	</div>

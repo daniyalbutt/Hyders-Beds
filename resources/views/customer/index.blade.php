@@ -5,7 +5,7 @@
         <h1>Customers</h1>
         <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
             <ol class="breadcrumb pt-0">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="#">Customers</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Customer List</li>
             </ol>
@@ -77,7 +77,15 @@
                         <p class="list-item-heading">#{{ $value->id }}</p>
                     </td>
                     <td>
-                        <p class="text-muted"><span class="badge badge-info badge-sm">{{ $value->name }}</span></p>
+                        <p class="text-muted">
+                            @can('edit customer')
+                            <a href="{{ route('customers.edit', $value->id) }}">
+                            @endcan
+                                <span class="badge badge-info badge-sm">{{ $value->name }}</span>
+                            @can('edit customer')
+                            </a>
+                            @endcan
+                        </p>
                     </td>
                     <td>
                         <p class="text-muted">{{ $value->email }}</p>

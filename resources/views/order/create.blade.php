@@ -5,8 +5,10 @@
         <h1>Orders</h1>
         <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
             <ol class="breadcrumb pt-0">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Orders</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+				@can('order')
+                <li class="breadcrumb-item"><a href="{{ route('orders.index') }}">Orders</a></li>
+				@endcan
                 <li class="breadcrumb-item active" aria-current="page">Add Order</li>
             </ol>
         </nav>
@@ -129,6 +131,7 @@
 				</div>
 				<!-- /.box-body -->
 				<div class="box-footer text-right">
+					<a href="{{ route('orders.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
 					<button type="submit" class="btn btn-primary">Save Order</button>
 				</div>
 			</div>

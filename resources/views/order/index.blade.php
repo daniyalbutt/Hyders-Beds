@@ -80,7 +80,13 @@
                         <p class="list-item-heading">{{ ++$key }}</p>
                     </td>
                     <td>
-                        <p class="text-muted"><span class="badge badge-info badge-sm">{{ $value->get_customer->name }}</span></p>
+                        @can('edit order')
+                        <a href="{{ route('orders.edit', $value->id) }}">
+                        @endcan
+                            <span class="badge badge-info badge-sm">{{ $value->get_customer->name }}</span>
+                        @can('edit order')
+                        </a>
+                        @endcan
                     </td>
                     <td>
                         <p class="text-muted">{{ $value->id }}</p>

@@ -28,4 +28,9 @@ class Customer extends Model
     public function partners(){
         return $this->hasMany(CustomerPartnership::class, 'customer_id');
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer', 'id')->where('status', 0)->orderBy('id', 'desc');
+    }
 }

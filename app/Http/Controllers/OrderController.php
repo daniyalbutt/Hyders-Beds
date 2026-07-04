@@ -737,6 +737,46 @@ class OrderController extends Controller
         return response()->stream($callback, 200, $headers);
     }
 
+    public function removeFabric(Request $request, Order $order, OrderItem $item)
+    {
+        $item->fabric_name  = null;
+        $item->fabric_price = 0.00;
+        $item->total        = $item->price * $item->quantity; // recalc row total
+        $item->save();
+        $order->recalcTotals();
+        return response()->json(['success' => true, 'new_total' => (float) $item->total]);
+    }
+
+    public function removeDrawer(Request $request, Order $order, OrderItem $item)
+    {
+        $item->drawer_name  = null;
+        $item->drawer_price = 0.00;
+        $item->total        = $item->price * $item->quantity; // recalc row total
+        $item->save();
+        $order->recalcTotals();
+        return response()->json(['success' => true, 'new_total' => (float) $item->total]);
+    }
+
+    public function updateFabric(Request $request, Order $order, OrderItem $item)
+    {
+        $item->fabric_name  = $request->fabric_name;
+        $item->fabric_price = $request->fabric_price;
+        $item->total        = ($item->price + $item->fabric_price + $item->drawer_price) * $item->quantity;
+        $item->save();
+        $order->recalcTotals();
+        return response()->json(['success' => true, 'new_total' => (float) $item->total]);
+    }
+
+    public function updateDrawer(Request $request, Order $order, OrderItem $item)
+    {
+        $item->drawer_name  = $request->drawer_name;
+        $item->drawer_price = $request->drawer_price;
+        $item->total        = ($item->price + $item->fabric_price + $item->drawer_price) * $item->quantity;
+        $item->save();
+        $order->recalcTotals();
+        return response()->json(['success' => true, 'new_total' => (float) $item->total]);
+    }
+
 
 
 }
