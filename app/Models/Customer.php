@@ -33,4 +33,9 @@ class Customer extends Model
     {
         return $this->hasMany(Order::class, 'customer', 'id')->where('status', 0)->orderBy('id', 'desc');
     }
+
+    public function contacts()
+    {
+        return $this->hasMany(CustomerContact::class);
+    }
 }

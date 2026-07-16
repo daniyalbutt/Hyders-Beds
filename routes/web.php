@@ -30,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::resource('customers', CustomerController::class);
     Route::get('/customer/search', [CustomerController::class, 'search'])->name('customer.search');
+    Route::post('customers/{customer}/contacts',          [CustomerController::class, 'storeContact'])->name('customers.contacts.store');
+    Route::put('customers/{customer}/contacts/{contact}', [CustomerController::class, 'updateContact'])->name('customers.contacts.update');
+    Route::delete('customers/{customer}/contacts/{contact}', [CustomerController::class, 'destroyContact'])->name('customers.contacts.destroy');
+    Route::get('customers/{customer}/contacts', [CustomerController::class, 'getContacts'])->name('customers.contacts.get');
     Route::resource('users', UserController::class);
     Route::resource('roles', RoleController::class);
     Route::resource('products', ProductController::class);

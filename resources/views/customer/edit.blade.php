@@ -52,6 +52,9 @@
 			<li class="nav-item" role="presentation">
 				<button class="nav-link" id="orders-tab" data-toggle="tab" data-target="#orders" type="button" role="tab" aria-controls="orders" aria-selected="false">Orders</button>
 			</li>
+			<li class="nav-item" role="presentation">
+				<button class="nav-link" id="contacts-tab" data-toggle="tab" data-target="#contacts" type="button" role="tab" aria-controls="contacts" aria-selected="false">Contacts</button>
+			</li>
 		</ul>
 		<div class="tab-content" id="myTabContent">
 			<div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
@@ -472,6 +475,41 @@
 				</div>
 				@endcan
 			</div>
+			<div class="tab-pane fade" id="contacts" role="tabpanel" aria-labelledby="contacts-tab">
+				<div class="basic-form">
+					<div class="box-body">
+						@if(session()->has('success'))
+							<div class="alert alert-success">{{ session()->get('success') }}</div>
+						@endif
+
+						@foreach($data->contacts as $contact)
+						<div class="row contact-row" data-id="{{ $contact->id }}">
+							<div class="col-md">
+								<div class="form-group">
+									<label class="form-label">Name <strong>*</strong></label>
+									<input type="text" class="form-control contact-name" value="{{ $contact->name }}" placeholder="Name">
+								</div>
+							</div>
+							<div class="col-md">
+								<div class="form-group">
+									<label class="form-label">Email</label>
+									<input type="email" class="form-control contact-email" value="{{ $contact->email }}" placeholder="Email">
+								</div>
+							</div>
+							<div class="col-md-1 mt-1">
+								<button type="button" class="btn btn-danger btn-sm delete-contact mt-4" data-id="{{ $contact->id }}">DELETE</button>
+							</div>
+						</div>
+						@endforeach
+					</div>
+
+					<div class="box-footer mt-3">
+						<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-backdrop="static" data-target="#addContactModal">Add New</button>
+						<button type="button" class="btn btn-primary" id="updateAllContactsBtn">Update</button>
+						<a href="{{ route('customers.index') }}" class="btn btn-outline-secondary ml-2">Close</a>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -551,6 +589,33 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade modal-right" id="addContactModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Contact</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Name <strong>*</strong></label>
+                    <input type="text" id="newContactName" class="form-control" placeholder="Contact name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="newContactEmail" class="form-control" placeholder="Contact email">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addContactBtn">Add Contact</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -568,6 +633,121 @@
             }
         });
 		$('#organizational_structure').change();
+	});
+
+	let customerId = {{ $data->id }};
+
+	$('#addContactBtn').on('click', function() {
+		let name  = $('#newContactName').val().trim();
+		let email = $('#newContactEmail').val().trim();
+
+		if (!name) { alert('Name is required.'); return; }
+
+		$.ajax({
+			url: '/customers/' + customerId + '/contacts',
+			method: 'POST',
+			data: { _token: '{{ csrf_token() }}', name: name, email: email },
+			success: function(res) {
+				if (res.success) {
+					let row = `
+						<div class="row contact-row" data-id="${res.contact.id}">
+							<div class="col-md">
+								<div class="form-group">
+									<label class="form-label">Name <strong>*</strong></label>
+									<input type="text" class="form-control contact-name" value="${res.contact.name}" placeholder="Name">
+								</div>
+							</div>
+							<div class="col-md">
+								<div class="form-group">
+									<label class="form-label">Email</label>
+									<input type="email" class="form-control contact-email" value="${res.contact.email ?? ''}" placeholder="Email">
+								</div>
+							</div>
+							<div class="col-md-1 mt-1">
+								<button type="button" class="btn btn-danger btn-sm delete-contact mt-4" data-id="${res.contact.id}">DELETE</button>
+							</div>
+						</div>`;
+					// Insert before the box-footer
+					$('#contacts .box-footer').before(row);
+					$('#newContactName').val('');
+					$('#newContactEmail').val('');
+					$('#addContactModal').modal('hide');
+				}
+			}
+		});
+	});
+
+	// Update all contacts
+	$(document).on('click', '#updateAllContactsBtn', function() {
+		let requests = [];
+
+		$('#contacts .contact-row').each(function() {
+			let id    = $(this).data('id');
+			let name  = $(this).find('.contact-name').val().trim();
+			let email = $(this).find('.contact-email').val().trim();
+
+			if (!name) return;
+
+			requests.push(
+				$.ajax({
+					url: '/customers/' + customerId + '/contacts/' + id,
+					method: 'POST',
+					data: { _token: '{{ csrf_token() }}', _method: 'PUT', name: name, email: email }
+				})
+			);
+		});
+
+		$.when(...requests).then(function() {
+			// Remove any existing alert first
+			$('#contacts .alert').remove();
+
+			// Show success message at the top of the tab
+			let msg = '<div class="alert alert-success">Customer Contacts updated successfully.</div>';
+			$('#contacts .box-body').prepend(msg);
+
+			// Auto-dismiss after 3 seconds
+			setTimeout(() => $('#contacts .alert').fadeOut(300, function(){ $(this).remove(); }), 3000);
+		});
+	});
+
+	// Save existing contact
+	$(document).on('click', '.save-contact', function() {
+		let $row    = $(this).closest('tr');
+		let id      = $(this).data('id');
+		let name    = $row.find('.contact-name').val().trim();
+		let email   = $row.find('.contact-email').val().trim();
+
+		if (!name) { alert('Name is required.'); return; }
+
+		$.ajax({
+			url: '/customers/' + customerId + '/contacts/' + id,
+			method: 'POST',
+			data: { _token: '{{ csrf_token() }}', _method: 'PUT', name: name, email: email },
+			success: function(res) {
+				if (res.success) {
+					$row.addClass('table-success');
+					setTimeout(() => $row.removeClass('table-success'), 800);
+				}
+			}
+		});
+	});
+
+	// Delete contact
+	$(document).on('click', '.delete-contact', function() {
+		if (!confirm('Delete this contact?')) return;
+		let $row = $(this).closest('.contact-row');
+		let id   = $(this).data('id');
+
+		$.ajax({
+			url: '/customers/' + customerId + '/contacts/' + id,
+			method: 'POST',
+			data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+			success: function(res) {
+				if (res.success) {
+					$row.fadeOut(300, function(){ $(this).remove(); });
+				}
+			}
+		});
 	});
 </script>
 @endpush

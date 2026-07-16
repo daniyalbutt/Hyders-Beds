@@ -9,6 +9,7 @@ use App\Models\CustomerBank;
 use App\Models\CustomerLimited;
 use App\Models\CustomerPartnership;
 use App\Models\User;
+use App\Models\CustomerContact;
 use Illuminate\Http\Request;
 use Auth;
 
@@ -343,5 +344,36 @@ class CustomerController extends Controller
             ];
         }
         return response()->json($formatted);
+    }
+
+    public function storeContact(Request $request, $customerId)
+    {
+        $request->validate(['name' => 'required|string|max:255', 'email' => 'nullable|email|max:255']);
+        $contact = CustomerContact::create([
+            'customer_id' => $customerId,
+            'name'        => $request->name,
+            'email'       => $request->email,
+        ]);
+        return response()->json(['success' => true, 'contact' => $contact]);
+    }
+
+    public function updateContact(Request $request, $customerId, $contactId)
+    {
+        $request->validate(['name' => 'required|string|max:255', 'email' => 'nullable|email|max:255']);
+        $contact = CustomerContact::where('customer_id', $customerId)->findOrFail($contactId);
+        $contact->update(['name' => $request->name, 'email' => $request->email]);
+        return response()->json(['success' => true, 'contact' => $contact]);
+    }
+
+    public function destroyContact($customerId, $contactId)
+    {
+        CustomerContact::where('customer_id', $customerId)->findOrFail($contactId)->delete();
+        return response()->json(['success' => true]);
+    }
+
+    public function getContacts($id)
+    {
+        $contacts = CustomerContact::where('customer_id', $id)->get(['id', 'name', 'email']);
+        return response()->json($contacts);
     }
 }

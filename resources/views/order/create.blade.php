@@ -121,9 +121,6 @@
 								<label class="form-label">Customer Contact</label>
 								<select name="customer_contact" id="customer_contact" class="form-control">
 									<option value="">Choose Contact</option>
-									<option value="Accounts">Accounts</option>
-									<option value="Nasir">Nasir</option>
-									<option value="Saarah">Saarah</option>
 								</select>
 							</div>
 						</div>
@@ -173,15 +170,31 @@
 
 		$('#customer-select').on('select2:select', function (e) {
 			var data = e.params.data;
+
+			// ── Address ──────────────────────────────────────────
 			$('#address-select').empty();
 			$('#address-select').append(new Option("Choose Delivery Address", "", true, true));
 			if (data.address) {
 				var optionValue = data.address + ' | ' + data.city + ' | ' + data.country;
-				var optionText = data.address + ' | ' + data.city + ' | ' + data.country;
-				$('#address-select').append(new Option(optionText, optionValue, false, false));
+				$('#address-select').append(new Option(optionValue, optionValue, false, false));
 			}
 			$('#address-select').append(new Option("Collection", "collection", false, false));
 			$('#address-select').trigger('change');
+
+			// ── Customer Contacts ─────────────────────────────────
+			$('#customer_contact').empty();
+			$('#customer_contact').append(new Option("Choose Contact", "", true, true));
+
+			$.get('/customers/' + data.id + '/contacts', function(contacts) {
+				if (contacts.length === 0) {
+					$('#customer_contact').append(new Option("No contacts found", "", false, false));
+					return;
+				}
+				contacts.forEach(function(contact) {
+					var label = contact.name + (contact.email ? ' (' + contact.email + ')' : '');
+					$('#customer_contact').append(new Option(label, contact.name, false, false));
+				});
+			});
 		});
 	});
 </script>
