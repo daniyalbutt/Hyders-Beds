@@ -471,7 +471,7 @@
 				</table>
 				@can('create order')
 				<div class="mt-3">
-					<a href="{{ route('orders.create') }}" class="btn btn-primary btn-sm">Create New Order</a>
+					<a href="{{ route('orders.create', ['customer_id' => $data->id]) }}" class="btn btn-primary btn-sm">Create New Order</a>
 				</div>
 				@endcan
 			</div>

@@ -196,6 +196,38 @@
 				});
 			});
 		});
+
+		// ── Pre-select customer if coming from customer edit page ──
+		@if(isset($preselectedCustomer) && $preselectedCustomer)
+			var preCustomer = {
+				id:      "{{ $preselectedCustomer->id }}",
+				text:    "{{ $preselectedCustomer->name }} ({{ $preselectedCustomer->email }})",
+				address: "{{ $preselectedCustomer->address }}",
+				city:    "{{ $preselectedCustomer->city }}",
+				country: "{{ $preselectedCustomer->country }}"
+			};
+
+			// Inject the option and select it
+			var option = new Option(preCustomer.text, preCustomer.id, true, true);
+			$('#customer-select').append(option).trigger('change');
+
+			// Populate address
+			$('#address-select').empty();
+			$('#address-select').append(new Option("Choose Delivery Address", "", true, true));
+			var addrValue = preCustomer.address + ' | ' + preCustomer.city + ' | ' + preCustomer.country;
+			$('#address-select').append(new Option(addrValue, addrValue, false, false));
+			$('#address-select').append(new Option("Collection", "collection", false, false));
+
+			// Populate contacts
+			$('#customer_contact').empty();
+			$('#customer_contact').append(new Option("Choose Contact", "", true, true));
+			$.get('/customers/' + preCustomer.id + '/contacts', function(contacts) {
+				contacts.forEach(function(contact) {
+					var label = contact.name + (contact.email ? ' (' + contact.email + ')' : '');
+					$('#customer_contact').append(new Option(label, contact.name, false, false));
+				});
+			});
+		@endif
 	});
 </script>
 @endpush

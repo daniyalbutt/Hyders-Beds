@@ -97,7 +97,13 @@ class OrderController extends Controller
         } else {
             $salesPersons = User::role('Sales Person')->get();
         }
-        return view('order.create', compact('salesPersons'));
+
+        $preselectedCustomer = null;
+        if (request()->has('customer_id')) {
+            $preselectedCustomer = \App\Models\Customer::find(request('customer_id'));
+        }
+
+        return view('order.create', compact('salesPersons', 'preselectedCustomer'));
     }
 
     /**
