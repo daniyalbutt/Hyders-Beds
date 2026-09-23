@@ -1103,6 +1103,7 @@
 				}
 			} else {
 				$('#orderTable tbody .delivery-checkbox').remove();
+				$('#orderTable tbody tr').removeClass('table-success');
 				$('#createLabelRow').remove();
 			}
 		});
@@ -1111,8 +1112,8 @@
 			let selectedItems = [];
 			$('#orderTable tbody .delivery-toggle:checked').each(function() {
 				let $row = $(this).closest('tr');
-				let itemId = $row.data('id'); // assuming each row has data-id (product_id or order_item_id)
-				let code = $row.data('code'); // product_code
+				let itemId = $row.find('.remove-item').data('id'); // ← was $row.data('id')
+				let code = $row.data('code');
 				selectedItems.push({ id: itemId, code: code });
 			});
 			if (selectedItems.length === 0) {
@@ -1142,11 +1143,29 @@
 		});
 
 		$(document).on('change', '.delivery-toggle', function() {
-			let row = $(this).closest('tr');
-			if ($(this).is(':checked')) {
-				row.addClass('table-success');
-			} else {
-				row.removeClass('table-success');
+			let $row = $(this).closest('tr');
+			let isChecked = $(this).is(':checked');
+
+			// Highlight/unhighlight this row
+			$row.toggleClass('table-success', isChecked);
+
+			// If it's a parent row — sync all its children
+			if ($row.hasClass('has-children-row')) {
+				let itemId = $row.find('.toggle-children').data('id');
+				$(`.child-row[data-parent="${itemId}"]`).each(function() {
+					$(this).toggleClass('table-success', isChecked);
+					$(this).find('.delivery-toggle').prop('checked', isChecked);
+				});
+			}
+
+			// If it's a child row being unchecked — uncheck parent too
+			if ($row.hasClass('child-row') && !isChecked) {
+				let parentId = $row.data('parent');
+				let $parentRow = $(`#orderTable tbody tr`).filter(function() {
+					return $(this).find('.toggle-children').data('id') == parentId;
+				});
+				$parentRow.removeClass('table-success');
+				$parentRow.find('.delivery-toggle').prop('checked', false);
 			}
 		});
 

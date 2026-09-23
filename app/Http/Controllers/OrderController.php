@@ -487,10 +487,25 @@ class OrderController extends Controller
         if (empty($items)) {
             return response()->json(['error' => 'No items selected'], 400);
         }
-        $selectedItems = Product::whereIn('id', array_column($items, 'id'))->get();
-        $pdf = Pdf::loadView('pdf.label', compact('selectedItems'))
-          ->setPaper([0, 0, 289.5, 430.5]);
-        return $pdf->stream('delivery-label.pdf');
+
+        $itemIds = array_column($items, 'id');
+        $selectedItems = OrderItem::whereIn('id', $itemIds)->get();
+
+        if ($selectedItems->isEmpty()) {
+            return response()->json(['error' => 'No items found'], 400);
+        }
+
+        $order = $selectedItems->first()->order;
+
+        try {
+            $pdf = Pdf::loadView('pdf.label', compact('selectedItems', 'order'));
+            $pdf->setPaper([0, 0, 289.5, 430.5], 'portrait');
+            $pdf->set_option('isPhpEnabled', true);
+            $pdf->set_option('defaultFont', 'Arial');
+            return $pdf->stream('delivery-label.pdf');
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'PDF error: ' . $e->getMessage()], 500);
+        }
     }
 
     public function updateItemDescription(Request $request, $orderId, $itemId)

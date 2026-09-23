@@ -4,87 +4,86 @@
     <meta charset="utf-8">
     <title>Delivery Label</title>
     <style>
-        @page {
-            margin: 0; /* no default margin for printing */
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            width: 289.5pt;   /* 386px */
-            height: 430.5pt;  /* 574px */
+            width: 289.5pt;
             margin: 0;
+            padding: 0;
         }
-        .label {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 15pt;
-            box-sizing: border-box;
+        table.label-table {
+            width: 289.5pt;
+            height: 430.5pt;
+            border-collapse: collapse;
+        }
+        table.label-table td {
             text-align: center;
+            vertical-align: top;
+            padding: 20pt 15pt;
         }
         .heading {
-            font-size: 14pt;
+            font-size: 18pt;
             font-weight: bold;
-            margin-top: 5pt;
+            text-transform: uppercase;
             margin-bottom: 5pt;
         }
-        .subheading {
-            font-size: 12pt;
-            margin-bottom: 15pt;
-        }
-        .order-block {
-            margin: 15pt 0;
-            text-align: center;
-        }
-        .order-number {
-            font-size: 13pt;
-            font-weight: bold;
-            margin-bottom: 3pt;
-        }
-        .order-details {
+        .company {
             font-size: 10pt;
-            line-height: 1.3;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 16pt;
         }
-        .product {
-            margin: 25pt 0;
+        .product-description {
             font-size: 13pt;
             font-weight: bold;
+            line-height: 1.4;
+            margin-bottom: 16pt;
+        }
+        .meta {
+            font-size: 10pt;
+            line-height: 2;
+            margin-bottom: 10pt;
+        }
+        .addon {
+            font-size: 10pt;
+            line-height: 2;
         }
         .box-info {
-            margin-top: auto; /* push to bottom */
             font-size: 12pt;
             font-weight: bold;
+            margin-top: 14pt;
         }
     </style>
 </head>
 <body>
-    @foreach($selectedItems as $item)
-        <div class="label">
-            <div class="heading">QR Cods Test</div>
-            <div class="subheading">Showroom</div>
-
-            <div class="order-block">
-                <div class="order-number">Order Number : {{ $order->id }}</div>
-                <div class="order-details">
-                    Line Number : {{ $item->line_number ?? '----' }}<br>
-                    Customer Ref : {{ $order->customer_ref ?? '' }}
-                </div>
+@foreach($selectedItems as $outerLoop)
+@php $qty = $outerLoop->quantity ?? 1; @endphp
+@for($box = 1; $box <= $qty; $box++)
+<table class="label-table">
+    <tr>
+        <td>
+            <div class="heading">{{ optional($outerLoop->product)->production_type ?? 'Production' }}</div>
+            <div class="company">{{ config('app.name') }} t/a<br>Furniture and Interiors</div>
+            <div class="product-description">{{ $outerLoop->description }}</div>
+            <div class="meta">
+                Customer Ref : {{ $order->order_reference ?? '' }}<br>
+                Line Number : {{ $outerLoop->id }}<br>
+                Order Number : {{ $order->id }}
             </div>
-
-            <div class="product">
-                {{ $item->description }}
-            </div>
-
-            <div class="box-info">
-                box {{ $item->box_no }} of {{ number_format($item->box_total, 2) }}
-            </div>
-        </div>
-
-        @if(!$loop->last)
-            <div style="page-break-after: always;"></div>
-        @endif
-    @endforeach
+            @if($outerLoop->drawer_name)
+            <div class="addon">Drawers : {{ $outerLoop->drawer_name }}</div>
+            @endif
+            @if($outerLoop->fabric_name)
+            <div class="addon">Fabric : {{ $outerLoop->fabric_name }}</div>
+            @endif
+            <div class="box-info">box {{ $box }} of {{ number_format($qty, 2) }}</div>
+        </td>
+    </tr>
+</table>
+@if(!($loop->last && $box == $qty))
+<div style="page-break-after:always;"></div>
+@endif
+@endfor
+@endforeach
 </body>
 </html>
